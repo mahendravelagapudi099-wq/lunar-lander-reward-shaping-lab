@@ -10,10 +10,14 @@ videos/*.gif
 !videos/.gitkeep
 
 # TensorBoard logs
+results/tb/
 results/*/tb_logs/
 results/*/tensorboard/
 **/tb_logs/
 **/runs/
+
+# Training process logs
+results/logs/
 
 # Python
 __pycache__/
