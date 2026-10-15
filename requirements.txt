@@ -1,0 +1,27 @@
+# Lunar Lander Reward Shaping Lab - Phase 1 (Windows, CPU-only, Python 3.11)
+#
+# Setup (from a Python 3.11 interpreter):
+#   python -m venv .venv
+#   .venv\Scripts\activate
+#   # Install the CPU-only PyTorch wheel first (avoids the ~2.5 GB CUDA wheel):
+#   pip install torch==2.14.1+cpu --index-url https://download.pytorch.org/whl/cpu
+#   pip install -r requirements.txt
+#
+# Versions below are the exact ones validated on this machine.
+
+# Core RL stack
+gymnasium[box2d]==1.4.0      # pulls Box2D==2.3.10 (prebuilt wheel on Python <3.14) + pygame-ce
+stable-baselines3==2.9.0     # requires torch>=2.8,<3.0, numpy>=1.20,<3.0, gymnasium<2.0
+numpy>=2.4,<3.0              # installed: 2.4.6 (SB3 requires <3.0)
+
+# Analysis / plotting / video
+pandas==3.0.6
+matplotlib==3.11.2
+moviepy==2.2.1
+imageio==2.38.1
+imageio-ffmpeg==0.6.0
+
+# Logging and testing
+tensorboard==2.21.0
+pytest==9.1.1
+PyYAML==6.0.3

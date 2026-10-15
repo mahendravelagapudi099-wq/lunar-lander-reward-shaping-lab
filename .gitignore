@@ -1,0 +1,40 @@
+# Models and large binaries
+models/
+*.zip
+*.pt
+*.pth
+
+# Videos (keep small example clips if needed)
+videos/*.mp4
+videos/*.gif
+!videos/.gitkeep
+
+# TensorBoard logs
+results/*/tb_logs/
+results/*/tensorboard/
+**/tb_logs/
+**/runs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
