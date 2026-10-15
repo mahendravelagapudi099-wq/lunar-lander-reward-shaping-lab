@@ -12,7 +12,7 @@ n_envs: 16
 # SubprocVecEnv measured ~2.4x faster than DummyVecEnv on this machine
 # (885.7 vs 376.6 steps/s, see results/timing/), so training uses subprocess
 # workers for the environment steps.
-vec_env: subproc
+vec_env: dummy
 # Single-threaded torch: 12-thread intra-op parallelism is much slower for the
 # tiny (64, 64) policy (see results/timing and progress.md).
 torch_threads: 1

@@ -35,8 +35,30 @@ reward shaping on top of this lab.
   the baseline keeps the Zoo's n_envs=16 for fidelity. Plan: 3 seeds x 1M
   steps at n_envs=16 = ~2h15m total. Results also in
   `results/timing/timing_results.csv`. **STOPPING here for approval.**
-- [ ] **Step 3 — Baseline training.** `scripts/train.py` + tuned config;
-  3 seeds x 1,000,000 steps; resumable.
+- [x] **Step 3 — Baseline training.** `scripts/train.py` (config-driven,
+  3 seeds × 1,000,000 steps, resumable via `--resume`):
+  - `configs/ppo_baseline.yaml`: RL-Baselines3-Zoo hyperparameters for
+    LunarLander-v3 (`n_envs: 16, n_steps: 1024, batch_size: 64,
+    gae_lambda: 0.98, gamma: 0.999, n_epochs: 4, ent_coef: 0.01`),
+    `vec_env: dummy`, `torch_threads: 1`, eval every 50k steps /
+    10 episodes (no render), checkpoint every 50k, Monitor CSVs per env.
+  - Per-seed layout under `results/runs/seed_{S}/`: `models/`
+    (`ppo_lander_seed{S}.zip` + `ppo_lander_seed{S}_{steps}_steps.zip`),
+    `eval/evaluations.npz`, `best/best_model.zip` (EvalCallback on
+    deterministic eval reward), `monitor/*.monitor.csv`, plus a summary
+    JSON with wall time and steps/s. TensorBoard events under
+    `results/tb/ppo_seed{S}_1/`.
+  - Env choice: a single-run 50k-step comparison favoured `SubprocVecEnv`
+    (885.7 vs 376.6 steps/s), but stacking subproc ×16 on top of 3 parallel
+    seeds needs ~50 processes each importing torch on a 15.7 GB machine —
+    the spawn wave hit `OMP: Error #111` and workers died importing Box2D.
+    Reverted to the single-process `DummyVecEnv` (the pre-approved setup):
+    3 parallel processes, ~1–2 GB RAM total.
+  - Reality check: the live DummyVecEnv runs sustained ~1,600–1,800 steps/s
+    per seed (far above the 376.6 steps/s benchmark figure, which was
+    measured during a busy period and included start-up warm-up), so the
+    full 3×1M baseline finished in ~11 minutes, not ~2 h 15 m. Timing CSVs
+    kept as-is for provenance; the summary JSONs hold the real wall times.
 - [ ] **Step 4 — Evaluation tool.** `scripts/evaluate.py` (100 episodes on
   the original reward) + `scripts/aggregate.py`.
 - [ ] **Step 5 — Video & plots.** `scripts/record_video.py`,
