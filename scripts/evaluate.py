@@ -120,7 +120,6 @@ def evaluate_seed(seed: int, model_source: str, episodes: int, out_dir: str) -> 
     model_path = find_model(seed, model_source)
     model = PPO.load(model_path, device="cpu")
     env = gym.make(ENV_ID)
-
     results = [run_episode(model, env, SEED_BASE + i) for i in range(episodes)]
     env.close()
 
@@ -135,6 +134,7 @@ def evaluate_seed(seed: int, model_source: str, episodes: int, out_dir: str) -> 
         "summary": summarise(results),
     }
     out_path = os.path.join(out_dir, f"ppo_seed_{seed}_{model_source}.json")
+    os.makedirs(out_dir, exist_ok=True)
     with open(out_path, "w") as f:
         json.dump(payload, f, indent=2)
 

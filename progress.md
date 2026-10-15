@@ -90,9 +90,18 @@ reward shaping on top of this lab.
   Baseline: **+254.6 ± 3.5 across seeds** (99% of episodes ≥ 200, the classic
   "solved" bar; zero crashes). Seed 0 had one low outlier (+124.1: landed
   outside the pad at |x| < 1, which still pays +100 minus shaping/fuel).
-- [ ] **Step 5 — Video & plots.** `scripts/record_video.py`,
-  `scripts/plot_curves.py`.
-- [ ] **Step 6 — Tests & README.** pytest suite + README with real numbers.
+- [x] **Step 5 — Video & plots.** `scripts/record_video.py` (one deterministic
+  episode per seed, same initial state as evaluation episode 0, saved to
+  `videos/ppo_lander_seed{0,1,2}.mp4`; rewards +258.2 / +278.0 / +270.5) and
+  `scripts/plot_curves.py` (`results/figures/learning_curves.png`, raw +
+  smoothed eval curves per seed with the 200-point solved bar). The videos
+  themselves are gitignored as regenerable artifacts.
+- [x] **Step 6 — Tests & README.** `tests/` — 18 pytest tests over all script
+  helpers (config loading, checkpoint resume logic, episode outcome/fuel
+  accounting and determinism, evaluate_seed JSON round trip, pooling and
+  seed-level spread, smoothing, curve loading); 18 passed in 6.6 s. README
+  rewritten with the full command list and the real training/evaluation
+  numbers above.
 
 ## Key facts (verified against installed sources)
 
