@@ -72,8 +72,24 @@ reward shaping on top of this lab.
     (`backfilled_from` key) because `train.py` only gained `summary.json`
     persistence after the runs finished; all three final/best models were
     re-loaded successfully as an integrity check.
-- [ ] **Step 4 — Evaluation tool.** `scripts/evaluate.py` (100 episodes on
-  the original reward) + `scripts/aggregate.py`.
+- [x] **Step 4 — Evaluation tool.** `scripts/evaluate.py` (100 deterministic
+  episodes per seed on the *unmodified* built-in reward; fixed episode-seed
+  sequence so every model sees the same 100 initial states) and
+  `scripts/aggregate.py` (writes `results/evaluations/summary.json` +
+  `summary.md`). Per-episode JSON records reward, length, outcome
+  (landed/crashed/timeout, from the sign of the ±100 termination reward) and
+  the fuel proxy `0.3*main + 0.03*side` firings. Results over 300 episodes:
+
+  | seed | mean reward | SEM | landed | crash | timeout | fuel |
+  |------|------------|-----|--------|-------|---------|------|
+  | 0    | +250.5     | 2.7 | 98%    | 0%    | 2%      | 57.0 |
+  | 1    | +257.1     | 2.1 | 100%   | 0%    | 0%      | 49.9 |
+  | 2    | +256.0     | 2.0 | 100%   | 0%    | 0%      | 54.2 |
+  | pooled | +254.6   | —   | 99%    | 0%    | 1%      | 53.7 |
+
+  Baseline: **+254.6 ± 3.5 across seeds** (99% of episodes ≥ 200, the classic
+  "solved" bar; zero crashes). Seed 0 had one low outlier (+124.1: landed
+  outside the pad at |x| < 1, which still pays +100 minus shaping/fuel).
 - [ ] **Step 5 — Video & plots.** `scripts/record_video.py`,
   `scripts/plot_curves.py`.
 - [ ] **Step 6 — Tests & README.** pytest suite + README with real numbers.
