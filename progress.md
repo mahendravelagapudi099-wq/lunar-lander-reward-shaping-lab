@@ -7,6 +7,10 @@ reward shaping on top of this lab.
 ## Step log
 
 - [x] **Step 0 — Repo init.** `git init` in `d:\Projects\LunarLander`.
+
+**Phase 1 status: COMPLETE.** All six steps done; working tree clean on
+`master` (9 commits). Ready for Phase 2 (custom reward shaping variants,
+compared against this baseline with the same evaluation tooling).
 - [x] **Step 1 — Setup & sanity check.** Python 3.11.17 venv at `.venv`
   (via uv; only Python 3.14 existed on the machine, but SB3 2.9.0 supports
   3.10–3.13 and gymnasium's Box2D extra ships prebuilt wheels below 3.14).
