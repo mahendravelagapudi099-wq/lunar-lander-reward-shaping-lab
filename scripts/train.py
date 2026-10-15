@@ -18,6 +18,7 @@ Per-seed layout under the run directory::
         monitor/                per-env Monitor CSVs (episode reward/length)
         eval/                   evaluations.npz from the EvalCallback
         best/                   best model seen during evaluation
+        summary.json            run metadata (hyperparameters, wall time, ...)
     TensorBoard logs go to results/tb/ppo_seed_<S>/.
 """
 
@@ -25,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import glob
+import json
 import os
 import re
 import time
@@ -190,6 +192,29 @@ def main() -> None:
     print(f"Final model: {final_path}")
     print(f"Best model:  {os.path.join(best_dir, 'best_model.zip')}")
     print(f"Evaluation history: {os.path.join(eval_dir, 'evaluations.npz')}")
+
+    summary = {
+        "seed": seed,
+        "env_id": cfg["env_id"],
+        "algorithm": "PPO",
+        "hyperparameters": cfg["hyperparameters"],
+        "vec_env": cfg["vec_env"],
+        "n_envs": n_envs,
+        "torch_threads": int(cfg["torch_threads"]),
+        "total_timesteps_requested": total_timesteps,
+        "timesteps_done": int(steps_done),
+        "wall_minutes_this_call": round(elapsed / 60.0, 2),
+        "steps_per_second": round(steps_per_sec, 1),
+        "resumed": bool(args.resume),
+        "resumed_from_steps": int(done_steps) if args.resume else 0,
+        "final_model": final_path,
+        "best_model": os.path.join(best_dir, "best_model.zip"),
+        "evaluations": os.path.join(eval_dir, "evaluations.npz"),
+    }
+    summary_path = os.path.join(run_dir, "summary.json")
+    with open(summary_path, "w") as f:
+        json.dump(summary, f, indent=2)
+    print(f"Summary:     {summary_path}")
 
 
 if __name__ == "__main__":

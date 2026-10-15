@@ -43,22 +43,35 @@ reward shaping on top of this lab.
     `vec_env: dummy`, `torch_threads: 1`, eval every 50k steps /
     10 episodes (no render), checkpoint every 50k, Monitor CSVs per env.
   - Per-seed layout under `results/runs/seed_{S}/`: `models/`
-    (`ppo_lander_seed{S}.zip` + `ppo_lander_seed{S}_{steps}_steps.zip`),
-    `eval/evaluations.npz`, `best/best_model.zip` (EvalCallback on
-    deterministic eval reward), `monitor/*.monitor.csv`, plus a summary
-    JSON with wall time and steps/s. TensorBoard events under
-    `results/tb/ppo_seed{S}_1/`.
+    (`ppo_lander_seed{S}.zip` final + `..._{steps}_steps.zip` every 50k),
+    `eval/evaluations.npz` (EvalCallback, deterministic, 10 episodes per eval),
+    `best/best_model.zip`, `monitor/*.monitor.csv` (16 per env), and
+    `summary.json` run metadata. TensorBoard events under
+    `results/tb/ppo_seed{S}_1/` (results/tb is gitignored).
   - Env choice: a single-run 50k-step comparison favoured `SubprocVecEnv`
     (885.7 vs 376.6 steps/s), but stacking subproc ×16 on top of 3 parallel
-    seeds needs ~50 processes each importing torch on a 15.7 GB machine —
+    seeds means ~50 processes that each re-import torch (Windows spawn
+    re-runs the main module), which exceeded memory on this 15.7 GB machine —
     the spawn wave hit `OMP: Error #111` and workers died importing Box2D.
     Reverted to the single-process `DummyVecEnv` (the pre-approved setup):
-    3 parallel processes, ~1–2 GB RAM total.
-  - Reality check: the live DummyVecEnv runs sustained ~1,600–1,800 steps/s
-    per seed (far above the 376.6 steps/s benchmark figure, which was
-    measured during a busy period and included start-up warm-up), so the
-    full 3×1M baseline finished in ~11 minutes, not ~2 h 15 m. Timing CSVs
-    kept as-is for provenance; the summary JSONs hold the real wall times.
+    3 parallel processes, ~240 MB each, ~1-2 GB total.
+  - Training launched as 3 parallel background processes
+    (`--seed 0|1|2`, logs in `results/logs/`, gitignored). Each run overshot
+    1M to 1,015,808 steps because PPO finishes the current 16×1024 rollout.
+    Real wall times and throughput (from each run's own summary line):
+
+    | seed | wall (min) | steps/s | best eval reward | mean of last 10 evals |
+    |------|-----------|---------|------------------|-----------------------|
+    | 0    | 23.1      | 733.4   | 256.1            | 245.9                 |
+    | 1    | 23.8      | 711.5   | 272.6            | 224.5                 |
+    | 2    | 24.4      | 692.7   | 255.3            | 214.5                 |
+
+    All three converged to solid landing policies (the "solved" bar is ~200)
+    and for every seed the final model is also the best-eval model.
+    The three summaries were backfilled from the run logs
+    (`backfilled_from` key) because `train.py` only gained `summary.json`
+    persistence after the runs finished; all three final/best models were
+    re-loaded successfully as an integrity check.
 - [ ] **Step 4 — Evaluation tool.** `scripts/evaluate.py` (100 episodes on
   the original reward) + `scripts/aggregate.py`.
 - [ ] **Step 5 — Video & plots.** `scripts/record_video.py`,

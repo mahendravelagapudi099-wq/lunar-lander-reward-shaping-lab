@@ -9,9 +9,12 @@
 env_id: LunarLander-v3
 total_timesteps: 1000000
 n_envs: 16
-# SubprocVecEnv measured ~2.4x faster than DummyVecEnv on this machine
-# (885.7 vs 376.6 steps/s, see results/timing/), so training uses subprocess
-# workers for the environment steps.
+# Vec env: a single-run 50k-step comparison measured SubprocVecEnv ~2.4x
+# faster than DummyVecEnv (885.7 vs 376.6 steps/s, see results/timing/), but
+# stacking 16 subprocess workers on top of 3 parallel seed runs needs ~50
+# processes that each import torch, which exceeded memory on this 15.7 GB
+# machine (spawn-wave OOM, OMP Error #111, dead workers). The baseline uses
+# single-process DummyVecEnv: 3 parallel seeds, ~1-2 GB total.
 vec_env: dummy
 # Single-threaded torch: 12-thread intra-op parallelism is much slower for the
 # tiny (64, 64) policy (see results/timing and progress.md).
