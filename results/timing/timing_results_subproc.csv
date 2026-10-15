@@ -1,0 +1,2 @@
+vec_env,n_envs,total_timesteps,wall_seconds,steps_per_second,est_1m_steps_seconds
+subproc,16,50000,56.45,885.7,1129.1
