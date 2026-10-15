@@ -1,0 +1,4 @@
+n_envs,total_timesteps,wall_seconds,steps_per_second,est_1m_steps_seconds
+1,50000,169.63,294.8,3392.6
+8,50000,103.71,482.1,2074.1
+16,50000,132.78,376.6,2655.6

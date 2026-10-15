@@ -17,9 +17,24 @@ reward shaping on top of this lab.
   `scripts/random_agent.py` runs 5 random episodes, prints labelled
   first-frame observations and per-episode reward/length, and saves
   `videos/random_agent.mp4`. All imports verified; environment steps fine.
-- [ ] **Step 2 — Timing check.** PPO 50k steps with 1 / 8 / 16 vec envs;
-  measure steps/sec; report RL-Baselines3-Zoo hyperparameters for
-  LunarLander-v3; estimate time for 1M steps. **STOP here for approval.**
+- [x] **Step 2 — Timing check.** `scripts/timing_check.py`, 50,000 PPO steps
+  per configuration with the RL-Baselines3-Zoo hyperparameters for
+  LunarLander-v3, single-threaded torch, on this machine
+  (i5-1235U, 10 cores/12 threads, big.LITTLE):
+
+  | n_envs | wall (50k) | steps/sec | est. 1M steps |
+  |--------|-----------|-----------|----------------|
+  | 1      | 2m 50s     | 294.8     | ~56 min        |
+  | 8      | 1m 44s     | 482.1     | ~35 min        |
+  | 16     | 2m 13s     | 376.6     | ~44 min        |
+
+  Notes: the default 12-thread torch was ~5-10x slower for the tiny (64, 64)
+  policy — thread-sync overhead dominates — so both the benchmark and
+  training pin `torch.set_num_threads(1)`. `DummyVecEnv` is single-process,
+  so more envs do not give real parallelism here; n_envs=8 was fastest but
+  the baseline keeps the Zoo's n_envs=16 for fidelity. Plan: 3 seeds x 1M
+  steps at n_envs=16 = ~2h15m total. Results also in
+  `results/timing/timing_results.csv`. **STOPPING here for approval.**
 - [ ] **Step 3 — Baseline training.** `scripts/train.py` + tuned config;
   3 seeds x 1,000,000 steps; resumable.
 - [ ] **Step 4 — Evaluation tool.** `scripts/evaluate.py` (100 episodes on
