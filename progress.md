@@ -326,11 +326,20 @@ mode differs from the baseline only in the reward signal.
   `docs/resume_bullets.md` (2 resume bullets + 1 LinkedIn post draft, all
   numbers artifact-backed, with an explicit "Claims status" list separating
   verified from unconfirmed claims).
-- [ ] **P2-6 — Verify & report.** Full `pytest` run; honest completion
-  report: which tests passed, which runs finished/failed, how many
-  hover-bonus attempts were needed, whether reward hacking actually
-  appeared, and what the human must still do manually (watch the videos,
-  write their reflections, publish the repo).
+- [x] **P2-6 — Verify & report.** Full `pytest` run: **51/51 pass**.
+  Verified artifacts: 6 shaped final models (plus periodic checkpoints),
+  6 shaped eval JSONs (100 episodes each), `summary.{json,md}`,
+  `comparison.{md,csv,json,png}`, `paired_differences.md`,
+  `learning_curves.png`, 6 shaped videos + the side-by-side clip; working
+  tree clean on `master`. Hover-bonus attempts needed: 1 valid attempt
+  (after 1 invalidated attempt caused by the `--mode` bug). Reward hacking
+  did appear: 85% timeouts, hover runs 684-799 frames, mean original-reward
+  score -4.4 vs baseline +254.6. What the human must still do manually:
+  watch `videos/hover_bonus_seed{0,1,2}.mp4` and
+  `videos/side_by_side_hover_bonus_vs_potential_shaped_seed0.mp4`, answer
+  the five reflection prompts at the end of `reports/results.md`, edit
+  `docs/resume_bullets.md` for tone, add the repo link to the LinkedIn
+  draft, and publish.
 
 **Rules for Phase 2:** no invented results; evaluation always uses the
 original reward; every mode uses identical hyperparameters except the
