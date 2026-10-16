@@ -7,12 +7,14 @@ initial states come from a fixed seed sequence shared by every model, so
 different models (or a later reward-shaped variant) are compared on the same
 set of initial states.
 
-Per-seed results are written to ``results/evaluations/ppo_seed_<S>_<src>.json``
-for ``scripts/aggregate.py`` to roll up.
+Files are named ``ppo_seed_<S>_<src>.json`` for the baseline and
+``ppo_<mode>_seed_<S>_<src>.json`` for a shaped mode, for
+``scripts/aggregate.py`` / ``scripts/compare.py`` to roll up.
 
 Example:
 
     .venv\\Scripts\\python.exe scripts\\evaluate.py --seeds 0 1 2 --episodes 100
+    .venv\\Scripts\\python.exe scripts\\evaluate.py --mode time_penalty --episodes 100
 """
 
 from __future__ import annotations
@@ -31,6 +33,8 @@ from stable_baselines3 import PPO
 ENV_ID = "LunarLander-v3"
 RESULTS_DIR = "results"
 DEFAULT_EPISODES = 100
+BASELINE = "baseline"
+MODES = ("baseline", "time_penalty", "hover_bonus", "potential_shaped")
 # Every episode is reset with seed_base + episode index, so all models see
 # the same 100 initial states (paired comparison across seeds/models).
 SEED_BASE = 1000
@@ -42,9 +46,15 @@ OUTCOME_CRASHED = "crashed"
 OUTCOME_TIMEOUT = "timeout"
 
 
-def find_model(seed: int, model_source: str) -> str:
-    """Return the path to the requested model artifact for ``seed``."""
+def find_model(seed: int, model_source: str, mode: str = BASELINE) -> str:
+    """Return the path to the requested model artifact for ``seed``.
+
+    The baseline lives under ``results/runs/seed_<S>/``; a shaped mode lives
+    under ``results/runs/<mode>/seed_<S>/`` (train.py's per-mode layout).
+    """
     run_dir = os.path.join(RESULTS_DIR, "runs", f"seed_{seed}")
+    if mode != BASELINE:
+        run_dir = os.path.join(RESULTS_DIR, "runs", mode, f"seed_{seed}")
     if model_source == "best":
         path = os.path.join(run_dir, "best", "best_model.zip")
     else:
@@ -115,9 +125,11 @@ def summarise(episodes: list[dict]) -> dict:
     }
 
 
-def evaluate_seed(seed: int, model_source: str, episodes: int, out_dir: str) -> dict:
+def evaluate_seed(
+    seed: int, model_source: str, episodes: int, out_dir: str, mode: str = BASELINE
+) -> dict:
     """Evaluate one seed's model for ``episodes`` episodes and save a JSON."""
-    model_path = find_model(seed, model_source)
+    model_path = find_model(seed, model_source, mode)
     model = PPO.load(model_path, device="cpu")
     env = gym.make(ENV_ID)
     results = [run_episode(model, env, SEED_BASE + i) for i in range(episodes)]
@@ -125,6 +137,7 @@ def evaluate_seed(seed: int, model_source: str, episodes: int, out_dir: str) -> 
 
     payload = {
         "env_id": ENV_ID,
+        "reward_mode": mode,
         "seed": seed,
         "model_source": model_source,
         "model_path": model_path,
@@ -133,14 +146,17 @@ def evaluate_seed(seed: int, model_source: str, episodes: int, out_dir: str) -> 
         "episodes": results,
         "summary": summarise(results),
     }
-    out_path = os.path.join(out_dir, f"ppo_seed_{seed}_{model_source}.json")
+    stem = f"ppo_seed_{seed}_{model_source}"
+    if mode != BASELINE:
+        stem = f"ppo_{mode}_seed_{seed}_{model_source}"
+    out_path = os.path.join(out_dir, stem + ".json")
     os.makedirs(out_dir, exist_ok=True)
     with open(out_path, "w") as f:
         json.dump(payload, f, indent=2)
 
     summary = payload["summary"]
     print(
-        f"Seed {seed} ({model_source}): mean reward {summary['mean_reward']:+.2f} "
+        f"Seed {seed} ({mode}/{model_source}): mean reward {summary['mean_reward']:+.2f} "
         f"+/- {summary['stderr_reward']:.2f} SEM over {episodes} episodes | "
         f"landed {summary['landed_rate'] * 100:.0f}% | "
         f"crash {summary['crash_rate'] * 100:.0f}% | "
@@ -160,6 +176,12 @@ def parse_args() -> argparse.Namespace:
         nargs="+",
         default=None,
         help="seeds to evaluate (default: all seeds found under results/runs)",
+    )
+    parser.add_argument(
+        "--mode",
+        choices=list(MODES),
+        default=BASELINE,
+        help="reward mode whose runs to evaluate (baseline = results/runs/seed_<S>)",
     )
     parser.add_argument(
         "--model",
@@ -188,7 +210,10 @@ def main() -> None:
 
     seeds = args.seeds
     if seeds is None:
-        pattern = os.path.join(RESULTS_DIR, "runs", "seed_*")
+        if args.mode == BASELINE:
+            pattern = os.path.join(RESULTS_DIR, "runs", "seed_*")
+        else:
+            pattern = os.path.join(RESULTS_DIR, "runs", args.mode, "seed_*")
         seeds = []
         for path in sorted(glob.glob(pattern)):
             match = re.search(r"seed_(\d+)$", path)
@@ -200,11 +225,11 @@ def main() -> None:
 
     os.makedirs(args.out_dir, exist_ok=True)
     print(
-        f"Evaluating {args.model} models on {ENV_ID} (original reward), "
+        f"Evaluating {args.mode}/{args.model} models on {ENV_ID} (original reward), "
         f"{args.episodes} deterministic episodes each"
     )
     for seed in seeds:
-        evaluate_seed(seed, args.model, args.episodes, args.out_dir)
+        evaluate_seed(seed, args.model, args.episodes, args.out_dir, args.mode)
 
 
 if __name__ == "__main__":

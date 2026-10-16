@@ -161,7 +161,7 @@ mode differs from the baseline only in the reward signal.
   Unit tests: builtin-identical to the raw env; potential term telescopes to
   ~0 over a hover-in-place sequence; hover bonus fires exactly when the
   conditions hold (boundary cases included).
-- [ ] **P2-2 — Training runs.** `train.py` extended with `--mode`
+- [x] **P2-2 — Training runs.** `train.py` extended with `--mode`
   (run dirs `results/runs/<mode>/seed_{S}/`; baseline stays at
   `results/runs/seed_{S}`), reward block in the YAML configs (one config
   per mode, every attempted config kept). Same total timesteps, network and
@@ -189,8 +189,27 @@ mode differs from the baseline only in the reward signal.
     frames in the hover state**, mean hover run 239 frames — matches the
     87% threshold measurement, so the hover criterion describes what a good
     landing policy already does). 29 tests pass.
-  - **Runs NOT started:** awaiting go-ahead for the time_penalty campaign
-    (3 seeds × ~23 min, run as background processes, ~25 min wall).
+  - **time_penalty runs DONE (2026-10-16):** 3 seeds × 1,000,000 steps
+    (1,015,808 actual, matching Phase 1), three concurrent background
+    processes, 34.9 min/seed at 485.6 steps/s. Per-seed `summary.json`
+    confirms `reward.mode = time_penalty`, `time_penalty: 0.05`, identical
+    hyperparameters, zero error-log bytes. Final EvalCallback (original
+    reward, deterministic): seed 0 +266.5 / seed 1 +263.2 / seed 2 +267.6
+    (best-ever +267.7 / +275.1 / +267.6). Learning curve compared to the
+    baseline at matched 50k-step evals: roughly equal shape, with the
+    time_penalty policy slightly *ahead* at the intermediate 500k evals on
+    seeds 1 and 2 — the penalty is not slowing learning here.
+    `inspect_hover.py` on the three final models (20 episodes each, original
+    reward): +263.4 / +265.6 / +266.4, **100%/100%/100% landed, 0 timeouts**,
+    mean hover run **35/50/48 frames** vs the baseline's 239, mean episode
+    length 305-321 (max 347) vs the baseline's timeout-containing 5%.
+    The time penalty produced short, decisive landings — the opposite of
+    hover-farming.
+  - **Smart App Control blocker RESOLVED:** on the retry signal (~19:20
+    local) `import torch`/`stable_baselines3` were healthy again and all 29
+    tests passed before relaunch; the policy flip was transient-enforcement
+    timing, and no exemption was needed. (Original blocker notes kept below
+    for the record.)
   - **BLOCKED (2026-10-16, ~18:55 local): Smart App Control flipped from
     evaluation to enforcement mid-session.** Windows Code Integrity now
     blocks `torch_python.dll` (unsigned) sandbox-wide:
@@ -211,14 +230,26 @@ mode differs from the baseline only in the reward signal.
     lifted (SAC off in Windows Security — note Microsoft marks that
     permanent for this install — or an org WDAC exemption) or a move to a
     machine without enforcement.
-- [ ] **P2-3 — Honest evaluation.** `evaluate.py --mode` (100 deterministic
-  episodes/seed on the original reward, wrapper never used for evaluation);
-  `aggregate.py` groups by mode; new `scripts/compare.py` writes
-  `results/comparison.csv`, a bar chart with error bars across modes, paired
-  bootstrap CIs vs baseline over the shared initial states (differences
-  within noise stated plainly), and overlaid shaped-vs-original learning
-  curves (Monitor CSVs) so a divergence is visible if the agent farms the
-  hover bonus.
+- [x] **P2-3 — Honest evaluation.** `evaluate.py --mode` (100 deterministic
+  episodes/seed on the original reward, wrapper never used for evaluation;
+  files `ppo_<mode>_seed_<S>_<src>.json`, baseline keeps the legacy
+  `ppo_seed_<S>_<src>.json` name); `aggregate.py` groups by
+  `<reward_mode>_<model_source>` (legacy JSONs default to baseline) and its
+  markdown calls out `timeout %` as the hover-farming signal. New
+  `scripts/compare.py` writes, under `results/evaluations/`:
+  `comparison.md` / `csv` / `json` (per-mode mean across seeds +/- seed
+  spread, pooled mean, landed/crash/timeout rates, mean length, fuel,
+  solved>=200%), `comparison.png` (bar chart with seed-level error bars),
+  `paired_differences.md` (paired mean difference vs baseline over the
+  shared initial states + bootstrap 95% CI, "WITHIN NOISE" stated plainly)
+  and `learning_curves.png` (per-mode Monitor `r` vs `episode_original`
+  overlay). Monitor accounting spot-checked: time_penalty training gap
+  between original and shaped rewards = 15.3 = 0.05 x mean episode length
+  306, exactly as designed. **time_penalty vs baseline (300 paired
+  episodes): mean +262.4 +/- 0.9 across seeds vs +254.6 +/- 3.5; paired
+  difference +7.8, 95% CI [+6.1, +9.6] -> SIGNIFICANT on these initial
+  states (caveat: 3 seeds is thin for a claim about the recipe itself).**
+  39 tests pass.
 - [ ] **P2-4 — Videos.** `record_video.py --mode` -> `videos/<mode>_seed{S}.mp4`
   (baseline, time_penalty, hover_bonus, potential_shaped) plus one
   side-by-side hover-bonus-vs-potential clip (moviepy).

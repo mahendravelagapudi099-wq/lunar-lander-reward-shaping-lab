@@ -1,0 +1,626 @@
+{
+  "env_id": "LunarLander-v3",
+  "reward_mode": "time_penalty",
+  "seed": 0,
+  "model_source": "final",
+  "model_path": "results\\runs\\time_penalty\\seed_0\\models\\ppo_lander_seed0.zip",
+  "deterministic": true,
+  "episode_seed_base": 1000,
+  "episodes": [
+    {
+      "reward": 280.6724467594263,
+      "length": 332,
+      "outcome": "landed",
+      "fuel_cost": 49.68
+    },
+    {
+      "reward": 260.3939328191952,
+      "length": 311,
+      "outcome": "landed",
+      "fuel_cost": 48.66
+    },
+    {
+      "reward": 264.69148668814387,
+      "length": 333,
+      "outcome": "landed",
+      "fuel_cost": 48.69
+    },
+    {
+      "reward": 258.7466203953152,
+      "length": 333,
+      "outcome": "landed",
+      "fuel_cost": 49.13999999999999
+    },
+    {
+      "reward": 288.6122604187867,
+      "length": 305,
+      "outcome": "landed",
+      "fuel_cost": 44.91
+    },
+    {
+      "reward": 238.03112569408574,
+      "length": 310,
+      "outcome": "landed",
+      "fuel_cost": 48.15
+    },
+    {
+      "reward": 278.57657557455286,
+      "length": 331,
+      "outcome": "landed",
+      "fuel_cost": 46.05
+    },
+    {
+      "reward": 257.52910500446546,
+      "length": 340,
+      "outcome": "landed",
+      "fuel_cost": 48.18
+    },
+    {
+      "reward": 246.74179760562347,
+      "length": 318,
+      "outcome": "landed",
+      "fuel_cost": 50.22
+    },
+    {
+      "reward": 258.4792165856776,
+      "length": 302,
+      "outcome": "landed",
+      "fuel_cost": 48.69
+    },
+    {
+      "reward": 298.77668655717434,
+      "length": 347,
+      "outcome": "landed",
+      "fuel_cost": 49.71
+    },
+    {
+      "reward": 229.98554208156904,
+      "length": 313,
+      "outcome": "landed",
+      "fuel_cost": 45.989999999999995
+    },
+    {
+      "reward": 241.71155479369446,
+      "length": 306,
+      "outcome": "landed",
+      "fuel_cost": 48.66
+    },
+    {
+      "reward": 289.10738435312055,
+      "length": 338,
+      "outcome": "landed",
+      "fuel_cost": 50.76
+    },
+    {
+      "reward": 236.427904625892,
+      "length": 320,
+      "outcome": "landed",
+      "fuel_cost": 48.48
+    },
+    {
+      "reward": 286.8060685349101,
+      "length": 323,
+      "outcome": "landed",
+      "fuel_cost": 48.449999999999996
+    },
+    {
+      "reward": 244.06851370083163,
+      "length": 321,
+      "outcome": "landed",
+      "fuel_cost": 50.910000000000004
+    },
+    {
+      "reward": 263.9499586718749,
+      "length": 302,
+      "outcome": "landed",
+      "fuel_cost": 46.92
+    },
+    {
+      "reward": 282.3594292842437,
+      "length": 315,
+      "outcome": "landed",
+      "fuel_cost": 45.839999999999996
+    },
+    {
+      "reward": 263.09160721591036,
+      "length": 315,
+      "outcome": "landed",
+      "fuel_cost": 47.46
+    },
+    {
+      "reward": 298.2054216281142,
+      "length": 312,
+      "outcome": "landed",
+      "fuel_cost": 47.63999999999999
+    },
+    {
+      "reward": 256.95945056957777,
+      "length": 351,
+      "outcome": "landed",
+      "fuel_cost": 48.300000000000004
+    },
+    {
+      "reward": 271.37200476416274,
+      "length": 323,
+      "outcome": "landed",
+      "fuel_cost": 49.10999999999999
+    },
+    {
+      "reward": 253.47734362443808,
+      "length": 291,
+      "outcome": "landed",
+      "fuel_cost": 46.23
+    },
+    {
+      "reward": 292.17164507332745,
+      "length": 306,
+      "outcome": "landed",
+      "fuel_cost": 48.38999999999999
+    },
+    {
+      "reward": 261.37880068817196,
+      "length": 345,
+      "outcome": "landed",
+      "fuel_cost": 49.32
+    },
+    {
+      "reward": 287.6290103687766,
+      "length": 313,
+      "outcome": "landed",
+      "fuel_cost": 49.83
+    },
+    {
+      "reward": 245.98054954091498,
+      "length": 349,
+      "outcome": "landed",
+      "fuel_cost": 49.47
+    },
+    {
+      "reward": 270.81468285966076,
+      "length": 295,
+      "outcome": "landed",
+      "fuel_cost": 47.49
+    },
+    {
+      "reward": 257.3812580154081,
+      "length": 309,
+      "outcome": "landed",
+      "fuel_cost": 49.74
+    },
+    {
+      "reward": 263.1291994404412,
+      "length": 292,
+      "outcome": "landed",
+      "fuel_cost": 46.71
+    },
+    {
+      "reward": 268.2608194911421,
+      "length": 328,
+      "outcome": "landed",
+      "fuel_cost": 49.41
+    },
+    {
+      "reward": 280.871212992956,
+      "length": 313,
+      "outcome": "landed",
+      "fuel_cost": 46.89
+    },
+    {
+      "reward": 265.72621311675795,
+      "length": 309,
+      "outcome": "landed",
+      "fuel_cost": 46.05
+    },
+    {
+      "reward": 262.5071388139112,
+      "length": 325,
+      "outcome": "landed",
+      "fuel_cost": 48.51
+    },
+    {
+      "reward": 243.32139554752564,
+      "length": 318,
+      "outcome": "landed",
+      "fuel_cost": 50.339999999999996
+    },
+    {
+      "reward": 255.54080415668582,
+      "length": 329,
+      "outcome": "landed",
+      "fuel_cost": 50.22
+    },
+    {
+      "reward": 288.6972062286909,
+      "length": 363,
+      "outcome": "landed",
+      "fuel_cost": 52.26
+    },
+    {
+      "reward": 270.3866653786185,
+      "length": 308,
+      "outcome": "landed",
+      "fuel_cost": 47.43
+    },
+    {
+      "reward": 274.4234053874152,
+      "length": 306,
+      "outcome": "landed",
+      "fuel_cost": 45.629999999999995
+    },
+    {
+      "reward": 268.4630191898815,
+      "length": 352,
+      "outcome": "landed",
+      "fuel_cost": 50.97
+    },
+    {
+      "reward": 271.73469726703604,
+      "length": 318,
+      "outcome": "landed",
+      "fuel_cost": 48.06
+    },
+    {
+      "reward": 289.8275796410242,
+      "length": 289,
+      "outcome": "landed",
+      "fuel_cost": 49.44
+    },
+    {
+      "reward": 241.50618691588136,
+      "length": 295,
+      "outcome": "landed",
+      "fuel_cost": 47.16
+    },
+    {
+      "reward": 223.60134772332282,
+      "length": 339,
+      "outcome": "landed",
+      "fuel_cost": 47.94
+    },
+    {
+      "reward": 304.7307543624239,
+      "length": 326,
+      "outcome": "landed",
+      "fuel_cost": 49.31999999999999
+    },
+    {
+      "reward": 256.0431311544642,
+      "length": 281,
+      "outcome": "landed",
+      "fuel_cost": 47.4
+    },
+    {
+      "reward": 285.6179213666719,
+      "length": 302,
+      "outcome": "landed",
+      "fuel_cost": 50.4
+    },
+    {
+      "reward": 278.16457079180225,
+      "length": 342,
+      "outcome": "landed",
+      "fuel_cost": 51.209999999999994
+    },
+    {
+      "reward": 266.0709668800119,
+      "length": 305,
+      "outcome": "landed",
+      "fuel_cost": 50.25
+    },
+    {
+      "reward": 243.19920310544052,
+      "length": 317,
+      "outcome": "landed",
+      "fuel_cost": 48.36
+    },
+    {
+      "reward": 291.77322946711945,
+      "length": 316,
+      "outcome": "landed",
+      "fuel_cost": 49.709999999999994
+    },
+    {
+      "reward": 271.5793222184102,
+      "length": 336,
+      "outcome": "landed",
+      "fuel_cost": 47.55
+    },
+    {
+      "reward": 226.22559085773105,
+      "length": 343,
+      "outcome": "landed",
+      "fuel_cost": 47.25
+    },
+    {
+      "reward": 286.31038185445254,
+      "length": 329,
+      "outcome": "landed",
+      "fuel_cost": 49.47
+    },
+    {
+      "reward": 261.9293290241798,
+      "length": 322,
+      "outcome": "landed",
+      "fuel_cost": 47.849999999999994
+    },
+    {
+      "reward": 264.2609381445646,
+      "length": 321,
+      "outcome": "landed",
+      "fuel_cost": 47.19
+    },
+    {
+      "reward": 265.8602345505919,
+      "length": 329,
+      "outcome": "landed",
+      "fuel_cost": 48.42
+    },
+    {
+      "reward": 278.6368138182743,
+      "length": 307,
+      "outcome": "landed",
+      "fuel_cost": 48.93
+    },
+    {
+      "reward": 264.0762269433023,
+      "length": 360,
+      "outcome": "landed",
+      "fuel_cost": 49.23
+    },
+    {
+      "reward": 244.7694631388476,
+      "length": 300,
+      "outcome": "landed",
+      "fuel_cost": 47.07
+    },
+    {
+      "reward": 243.96156846002145,
+      "length": 341,
+      "outcome": "landed",
+      "fuel_cost": 48.75
+    },
+    {
+      "reward": 239.8268182053951,
+      "length": 324,
+      "outcome": "landed",
+      "fuel_cost": 47.97
+    },
+    {
+      "reward": 250.21996610843635,
+      "length": 348,
+      "outcome": "landed",
+      "fuel_cost": 49.709999999999994
+    },
+    {
+      "reward": 245.3237802669817,
+      "length": 312,
+      "outcome": "landed",
+      "fuel_cost": 50.16
+    },
+    {
+      "reward": 262.4922186457301,
+      "length": 350,
+      "outcome": "landed",
+      "fuel_cost": 49.68
+    },
+    {
+      "reward": 250.70714877404598,
+      "length": 321,
+      "outcome": "landed",
+      "fuel_cost": 46.800000000000004
+    },
+    {
+      "reward": 248.00592124202737,
+      "length": 294,
+      "outcome": "landed",
+      "fuel_cost": 49.83
+    },
+    {
+      "reward": 258.9851964697477,
+      "length": 346,
+      "outcome": "landed",
+      "fuel_cost": 50.63999999999999
+    },
+    {
+      "reward": 269.0770155805799,
+      "length": 318,
+      "outcome": "landed",
+      "fuel_cost": 47.339999999999996
+    },
+    {
+      "reward": 278.00315384060787,
+      "length": 324,
+      "outcome": "landed",
+      "fuel_cost": 47.1
+    },
+    {
+      "reward": 296.51034509921715,
+      "length": 274,
+      "outcome": "landed",
+      "fuel_cost": 43.260000000000005
+    },
+    {
+      "reward": 267.0359434056702,
+      "length": 345,
+      "outcome": "landed",
+      "fuel_cost": 52.38
+    },
+    {
+      "reward": 283.77949976606567,
+      "length": 290,
+      "outcome": "landed",
+      "fuel_cost": 47.459999999999994
+    },
+    {
+      "reward": 259.04228210673296,
+      "length": 294,
+      "outcome": "landed",
+      "fuel_cost": 46.5
+    },
+    {
+      "reward": 243.46837219973546,
+      "length": 310,
+      "outcome": "landed",
+      "fuel_cost": 46.38
+    },
+    {
+      "reward": 242.76073338209503,
+      "length": 371,
+      "outcome": "landed",
+      "fuel_cost": 51.75
+    },
+    {
+      "reward": 217.1998448132867,
+      "length": 308,
+      "outcome": "landed",
+      "fuel_cost": 48.51
+    },
+    {
+      "reward": 271.0359129067652,
+      "length": 300,
+      "outcome": "landed",
+      "fuel_cost": 47.31
+    },
+    {
+      "reward": 244.16114105526407,
+      "length": 318,
+      "outcome": "landed",
+      "fuel_cost": 48.99
+    },
+    {
+      "reward": 290.8687883931523,
+      "length": 289,
+      "outcome": "landed",
+      "fuel_cost": 48.78
+    },
+    {
+      "reward": 271.6999003923876,
+      "length": 306,
+      "outcome": "landed",
+      "fuel_cost": 48.42
+    },
+    {
+      "reward": 252.1781874415042,
+      "length": 299,
+      "outcome": "landed",
+      "fuel_cost": 46.08
+    },
+    {
+      "reward": 230.26534965593933,
+      "length": 297,
+      "outcome": "landed",
+      "fuel_cost": 47.16
+    },
+    {
+      "reward": 257.49584754396545,
+      "length": 307,
+      "outcome": "landed",
+      "fuel_cost": 47.76
+    },
+    {
+      "reward": 255.29166882482508,
+      "length": 300,
+      "outcome": "landed",
+      "fuel_cost": 46.92
+    },
+    {
+      "reward": 241.24534267756349,
+      "length": 294,
+      "outcome": "landed",
+      "fuel_cost": 47.94
+    },
+    {
+      "reward": 271.36061884302694,
+      "length": 326,
+      "outcome": "landed",
+      "fuel_cost": 47.22
+    },
+    {
+      "reward": 235.52692543052936,
+      "length": 336,
+      "outcome": "landed",
+      "fuel_cost": 50.19
+    },
+    {
+      "reward": 279.40311757217194,
+      "length": 342,
+      "outcome": "landed",
+      "fuel_cost": 51.9
+    },
+    {
+      "reward": 217.99673874949582,
+      "length": 302,
+      "outcome": "landed",
+      "fuel_cost": 46.17
+    },
+    {
+      "reward": 228.54207136747374,
+      "length": 305,
+      "outcome": "landed",
+      "fuel_cost": 45.99
+    },
+    {
+      "reward": 243.61776649064672,
+      "length": 290,
+      "outcome": "landed",
+      "fuel_cost": 47.699999999999996
+    },
+    {
+      "reward": 221.73999589763025,
+      "length": 301,
+      "outcome": "landed",
+      "fuel_cost": 48.51
+    },
+    {
+      "reward": 267.332850510589,
+      "length": 297,
+      "outcome": "landed",
+      "fuel_cost": 46.019999999999996
+    },
+    {
+      "reward": 245.6686200660639,
+      "length": 317,
+      "outcome": "landed",
+      "fuel_cost": 49.23
+    },
+    {
+      "reward": 267.7483987940782,
+      "length": 297,
+      "outcome": "landed",
+      "fuel_cost": 46.68
+    },
+    {
+      "reward": 255.65250232031443,
+      "length": 321,
+      "outcome": "landed",
+      "fuel_cost": 51.48
+    },
+    {
+      "reward": 267.33443630769415,
+      "length": 287,
+      "outcome": "landed",
+      "fuel_cost": 45.9
+    },
+    {
+      "reward": 242.33709262982075,
+      "length": 316,
+      "outcome": "landed",
+      "fuel_cost": 48.12
+    }
+  ],
+  "summary": {
+    "episodes": 100,
+    "mean_reward": 261.36277435703903,
+    "std_reward": 19.657712981057333,
+    "stderr_reward": 1.9657712981057334,
+    "min_reward": 217.1998448132867,
+    "max_reward": 304.7307543624239,
+    "median_reward": 262.49967872982063,
+    "mean_length": 317.46,
+    "mean_fuel_cost": 48.36389999999999,
+    "solved_rate_ge200": 1.0,
+    "landed_rate": 1.0,
+    "crash_rate": 0.0,
+    "timeout_rate": 0.0
+  }
+}

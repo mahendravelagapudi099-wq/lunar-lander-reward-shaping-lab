@@ -1,7 +1,7 @@
 {
   "eval_dir": "results\\evaluations",
-  "by_model_source": {
-    "final": {
+  "by_group": {
+    "baseline_final": {
       "seeds": [
         0,
         1,
@@ -68,6 +68,75 @@
         "timeout_rate": 0.006666666666666667,
         "mean_length": 365.5833333333333,
         "mean_fuel_cost": 53.687400000000004
+      }
+    },
+    "time_penalty_final": {
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "per_seed": [
+        {
+          "episodes": 100,
+          "mean_reward": 261.36277435703903,
+          "std_reward": 19.657712981057333,
+          "stderr_reward": 1.9657712981057334,
+          "min_reward": 217.1998448132867,
+          "max_reward": 304.7307543624239,
+          "median_reward": 262.49967872982063,
+          "mean_length": 317.46,
+          "mean_fuel_cost": 48.36389999999999,
+          "solved_rate_ge200": 1.0,
+          "landed_rate": 1.0,
+          "crash_rate": 0.0,
+          "timeout_rate": 0.0
+        },
+        {
+          "episodes": 100,
+          "mean_reward": 263.2214946464055,
+          "std_reward": 19.751484888991254,
+          "stderr_reward": 1.9751484888991253,
+          "min_reward": 218.06715121097272,
+          "max_reward": 304.73964995676033,
+          "median_reward": 264.5316277530008,
+          "mean_length": 304.38,
+          "mean_fuel_cost": 46.5201,
+          "solved_rate_ge200": 1.0,
+          "landed_rate": 1.0,
+          "crash_rate": 0.0,
+          "timeout_rate": 0.0
+        },
+        {
+          "episodes": 100,
+          "mean_reward": 262.551220195001,
+          "std_reward": 24.994455938304576,
+          "stderr_reward": 2.4994455938304574,
+          "min_reward": 112.49825356543397,
+          "max_reward": 303.6640111287386,
+          "median_reward": 263.1398830087033,
+          "mean_length": 308.66,
+          "mean_fuel_cost": 45.1347,
+          "solved_rate_ge200": 0.99,
+          "landed_rate": 0.99,
+          "crash_rate": 0.0,
+          "timeout_rate": 0.01
+        }
+      ],
+      "pooled": {
+        "episodes": 300,
+        "pooled_mean_reward": 262.37849639948183,
+        "pooled_std_reward": 21.553613148070863,
+        "mean_across_seeds": 262.3784963994819,
+        "std_across_seeds": 0.9413210986053419,
+        "min_reward": 112.49825356543397,
+        "max_reward": 304.73964995676033,
+        "solved_rate_ge200": 0.9966666666666667,
+        "landed_rate": 0.9966666666666667,
+        "crash_rate": 0.0,
+        "timeout_rate": 0.0033333333333333335,
+        "mean_length": 310.1666666666667,
+        "mean_fuel_cost": 46.6729
       }
     }
   }

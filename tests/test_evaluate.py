@@ -92,6 +92,7 @@ def test_evaluate_seed_writes_json_with_expected_shape(tmp_path, monkeypatch, ti
 
     assert payload["seed"] == 0
     assert payload["model_source"] == "final"
+    assert payload["reward_mode"] == "baseline"
     assert payload["model_path"].endswith("ppo_lander_seed0.zip")
     assert len(payload["episodes"]) == 3
     # Episode seeds follow the fixed base sequence -> reproducible evaluations.
@@ -101,3 +102,23 @@ def test_evaluate_seed_writes_json_with_expected_shape(tmp_path, monkeypatch, ti
     assert saved.exists()
     with open(saved) as f:
         assert json.load(f)["summary"]["episodes"] == 3
+
+
+def test_evaluate_seed_shaped_mode_uses_mode_subdir_and_filename(
+    tmp_path, monkeypatch, tiny_model
+):
+    """A shaped --mode reads runs/<mode>/seed_<S>/ and writes ppo_<mode>_seed_...json."""
+    fake_results = tmp_path / "results"
+    model_dir = fake_results / "runs" / "time_penalty" / "seed_0" / "models"
+    model_dir.mkdir(parents=True)
+    tiny_model.save(str(model_dir / "ppo_lander_seed0.zip"))
+    monkeypatch.setattr(evaluate, "RESULTS_DIR", str(fake_results))
+
+    out_dir = tmp_path / "evaluations"
+    payload = evaluate.evaluate_seed(0, "final", 3, str(out_dir), mode="time_penalty")
+
+    assert payload["reward_mode"] == "time_penalty"
+    assert "time_penalty" in payload["model_path"]
+    saved = out_dir / "ppo_time_penalty_seed_0_final.json"
+    assert saved.exists()
+    assert not (out_dir / "ppo_seed_0_final.json").exists()

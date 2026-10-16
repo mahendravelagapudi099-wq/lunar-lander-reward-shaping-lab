@@ -56,15 +56,31 @@ def test_pool_episodes_seed_level_spread():
     assert pooled["std_across_seeds"] == pytest.approx((50.0**2 + 50.0**2) ** 0.5)
 
 
-def test_load_results_groups_by_model_source(tmp_path):
-    """JSONs are grouped by model source and ordered by seed."""
+def test_load_results_groups_by_mode_and_model_source(tmp_path):
+    """JSONs are grouped by reward mode + model source and ordered by seed."""
     for seed in (2, 0, 1):
         data = payload(seed, [100.0, 200.0], source="best")
         (tmp_path / f"ppo_seed_{seed}_best.json").write_text(json.dumps(data))
     (tmp_path / "summary.json").write_text("{}")  # must be ignored
     groups = aggregate.load_results(str(tmp_path))
-    assert list(groups.keys()) == ["best"]
-    assert [p["seed"] for p in groups["best"]] == [0, 1, 2]
+    # Legacy JSONs without reward_mode are treated as baseline.
+    assert list(groups.keys()) == ["baseline_best"]
+    assert [p["seed"] for p in groups["baseline_best"]] == [0, 1, 2]
+
+
+def test_load_results_separates_shaped_modes(tmp_path):
+    """Baseline and shaped-mode JSONs land in different groups."""
+    for seed in (0, 1):
+        data = payload(seed, [100.0, 200.0])
+        data["reward_mode"] = "time_penalty"
+        (tmp_path / f"ppo_time_penalty_seed_{seed}_final.json").write_text(
+            json.dumps(data)
+        )
+    baseline = payload(0, [300.0, 400.0])
+    (tmp_path / "ppo_seed_0_final.json").write_text(json.dumps(baseline))
+    groups = aggregate.load_results(str(tmp_path))
+    assert sorted(groups.keys()) == ["baseline_final", "time_penalty_final"]
+    assert [p["seed"] for p in groups["time_penalty_final"]] == [0, 1]
 
 
 def test_markdown_table_contains_seed_rows_and_pooled_row():

@@ -1,0 +1,46 @@
+{
+  "rows": [
+    {
+      "group": "baseline_final",
+      "mode": "baseline",
+      "model_source": "final",
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "n_seeds": 3,
+      "n_episodes": 300,
+      "mean_across_seeds": 254.55673044998085,
+      "std_across_seeds": 3.5357861230369063,
+      "pooled_mean_reward": 254.55673044998082,
+      "landed_rate": 0.9933333333333333,
+      "crash_rate": 0.0,
+      "timeout_rate": 0.006666666666666667,
+      "mean_length": 365.5833333333333,
+      "mean_fuel_cost": 53.687400000000004,
+      "solved_rate_ge200": 0.9933333333333333
+    },
+    {
+      "group": "time_penalty_final",
+      "mode": "time_penalty",
+      "model_source": "final",
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "n_seeds": 3,
+      "n_episodes": 300,
+      "mean_across_seeds": 262.3784963994819,
+      "std_across_seeds": 0.9413210986053419,
+      "pooled_mean_reward": 262.37849639948183,
+      "landed_rate": 0.9966666666666667,
+      "crash_rate": 0.0,
+      "timeout_rate": 0.0033333333333333335,
+      "mean_length": 310.1666666666667,
+      "mean_fuel_cost": 46.6729,
+      "solved_rate_ge200": 0.9966666666666667
+    }
+  ]
+}

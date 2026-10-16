@@ -1,8 +1,10 @@
 """Aggregate per-seed evaluation JSONs into a summary table.
 
-Reads every ``ppo_seed_<S>_<src>.json`` written by ``scripts/evaluate.py``
-from the evaluations directory, groups them by model source (``final``,
-``best``, ...), and writes:
+Reads every ``ppo_<mode>_seed_<S>_<src>.json`` (baseline files keep the
+legacy ``ppo_seed_<S>_<src>.json`` name) written by ``scripts/evaluate.py``
+from the evaluations directory, groups them by reward mode and model source
+(``final``, ``best``, ...) — with ``baseline`` the default for JSONs written
+before the ``--mode`` flag existed — and writes:
 
 * ``summary.json`` — the full structured aggregate (per-seed and pooled
   statistics), and
@@ -27,8 +29,9 @@ import os
 import numpy as np
 
 RESULTS_DIR = "results"
+BASELINE = "baseline"
 DEFAULT_EVAL_DIR = os.path.join(RESULTS_DIR, "evaluations")
-RESULT_PATTERN = "ppo_seed_*_*.json"
+RESULT_PATTERN = "ppo_*seed_*_*.json"
 
 # Columns of the markdown table: (stat key, header, format).
 TABLE_COLUMNS: tuple[tuple[str, str, str], ...] = (
@@ -46,13 +49,19 @@ TABLE_COLUMNS: tuple[tuple[str, str, str], ...] = (
 )
 
 
+def group_key(payload: dict) -> str:
+    """Group key ``<reward_mode>_<model_source>``; legacy JSONs are baseline."""
+    mode = payload.get("reward_mode", BASELINE)
+    return f"{mode}_{payload['model_source']}"
+
+
 def load_results(eval_dir: str) -> dict[str, list[dict]]:
-    """Group all evaluation JSONs by their model source, seeds ordered."""
+    """Group all evaluation JSONs by reward mode and model source, seeds ordered."""
     groups: dict[str, list[dict]] = {}
     for path in sorted(glob.glob(os.path.join(eval_dir, RESULT_PATTERN))):
         with open(path) as f:
             payload = json.load(f)
-        groups.setdefault(payload["model_source"], []).append(payload)
+        groups.setdefault(group_key(payload), []).append(payload)
     for payloads in groups.values():
         payloads.sort(key=lambda p: p["seed"])
     return groups
@@ -152,18 +161,18 @@ def main() -> None:
             f"(run scripts/evaluate.py first)"
         )
 
-    aggregate: dict[str, object] = {"eval_dir": args.eval_dir, "by_model_source": {}}
+    aggregate: dict[str, object] = {"eval_dir": args.eval_dir, "by_group": {}}
     markdown_parts: list[str] = []
-    for model_source, payloads in sorted(groups.items()):
+    for group, payloads in sorted(groups.items()):
         pooled = pool_episodes(payloads)
-        aggregate["by_model_source"][model_source] = {
+        aggregate["by_group"][group] = {
             "seeds": [p["seed"] for p in payloads],
             "per_seed": [p["summary"] for p in payloads],
             "pooled": pooled,
         }
-        markdown_parts.append(markdown_table(payloads, pooled, model_source))
+        markdown_parts.append(markdown_table(payloads, pooled, group))
         print(
-            f"{model_source}: {len(payloads)} seeds, "
+            f"{group}: {len(payloads)} seeds, "
             f"pooled mean reward {pooled['pooled_mean_reward']:+.1f} over "
             f"{pooled['episodes']} episodes; across seeds "
             f"{pooled['mean_across_seeds']:+.1f} +/- {pooled['std_across_seeds']:.1f}; "
@@ -177,11 +186,14 @@ def main() -> None:
         json.dump(aggregate, f, indent=2)
     md_path = os.path.join(args.eval_dir, "summary.md")
     with open(md_path, "w") as f:
-        f.write("# PPO baseline evaluation on the original reward\n\n")
+        f.write("# PPO evaluation on the original reward (by reward mode)\n\n")
         f.write("\n".join(markdown_parts))
         f.write(
             "\n`SEM` = standard error of the per-seed mean over its episodes; "
-            "`fuel cost` = 0.3 * main + 0.03 * side engine firings.\n"
+            "`fuel cost` = 0.3 * main + 0.03 * side engine firings; "
+            "`timeout %` is the hover-farming signal. "
+            "Sections are grouped as `<reward_mode>_<model_source>`; "
+            "files written before the `--mode` flag default to `baseline`.\n"
         )
     print(f"Saved: {json_path}")
     print(f"Saved: {md_path}")
