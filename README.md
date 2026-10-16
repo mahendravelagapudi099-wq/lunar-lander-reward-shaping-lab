@@ -1,265 +1,317 @@
 # Lunar Lander Reward Shaping Lab
 
-A reinforcement-learning portfolio project that trains a PPO agent on
-Gymnasium's `LunarLander-v3` and analyses its behaviour. **Phase 1** sets up
-the environment, trains a solid baseline with the built-in reward using
-tuned hyperparameters from the RL Baselines3 Zoo, and builds evaluation,
-plotting and video tooling on top of the *original, unmodified* environment
-reward. **Phase 2** adds three custom reward-shaping variants — a per-frame
-time penalty, a deliberately exploitable hover bonus, and a potential-based
-"unfarmable" shaping — and compares all of them against the baseline on the
-original reward. Full Phase 2 write-up:
-[`reports/results.md`](reports/results.md).
+Four PPO agents on Gymnasium's `LunarLander-v3`, trained with identical
+hyperparameters on four different *training* rewards — and graded on the
+original, unmodified reward to see which shaping actually helps, which does
+nothing, and which the agent learns to exploit instead of landing.
 
-## The environment
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+![Gymnasium](https://img.shields.io/badge/Gymnasium-1.4.0-blue)
+![Stable-Baselines3](https://img.shields.io/badge/Stable--Baselines3-2.9.0-blue)
+![tests](https://img.shields.io/badge/tests-51%20passing-brightgreen)
 
-LunarLander-v3 is a 2D Box2D rocket-landing problem. The lander starts
-airborne and must touch down on the landing pad at coordinates (0, 0).
+<img src="assets/gifs/hover_vs_potential.gif" width="720"
+     alt="Side-by-side evaluation of two trained agents on the same initial
+          state: the hover-bonus agent remains parked above the landing pad
+          while the potential-shaped agent descends and lands.">
 
-**Observation (8 values):**
+*Same initial state, same training recipe, different training rewards: the
+agent on the left was paid to hover, so it hovers — the episode runs to the
+1000-step limit. The agent on the right was paid only for improving, so it
+lands.*
 
-| # | Value | Meaning |
-|---|-------|---------|
-| 0 | x position | horizontal position, pad is at 0 (normalised units) |
-| 1 | y position | height above the pad |
-| 2 | x velocity | horizontal velocity |
-| 3 | y velocity | vertical velocity |
-| 4 | angle | lander tilt in radians (0 = upright) |
-| 5 | angular velocity | rotation rate |
-| 6 | left leg contact | 1 if the left leg touches the ground, else 0 |
-| 7 | right leg contact | 1 if the right leg touches the ground, else 0 |
+## Key results
 
-**Actions (discrete, 4):**
+Over 300 paired evaluation episodes per mode on the original reward:
 
-| Action | Effect |
-|--------|--------|
-| 0 | do nothing |
-| 1 | fire the left orientation engine |
-| 2 | fire the main (bottom) engine |
-| 3 | fire the right orientation engine |
+- **The baseline is a solid reference:** +254.6 ± 3.5 points, 99% of episodes
+  landed, and 99% clear the environment's 200-point "solved" threshold.
+- **A small per-frame time penalty was the only variant that helped:**
+  +262.4 ± 0.9, 100% landed, zero timeouts, and a paired gain of +7.8
+  (95% CI [+6.1, +9.6]) over the baseline — its landings are simply more
+  decisive (mean episode length 366 → 310 steps) and burn less fuel
+  (53.7 → 46.7).
+- **The hover bonus was catastrophically exploited:** −4.4 points, 85% of
+  episodes timing out at the 1000-step cap (vs 1% for the baseline) with the
+  lander parked upright and nearly motionless above the pad — collecting
+  +1 per frame instead of the +100 reward for actually landing.
+- **Potential-based shaping stayed neutral, as theory predicts:**
+  +256.3 ± 16.4, paired difference +1.8 (95% CI [−2.1, +5.3], straddling
+  zero) — the telescoping form cannot be farmed, but it also did not help.
 
-**Reward:** per-step shaping rewards getting closer to the pad, moving slowly
-and staying level; +10 for each leg touching ground; -0.03 per frame a side
-engine fires and -0.3 per frame the main engine fires (fuel cost). A safe
-landing ends the episode with **+100**; a crash (hull contact) or coming to
-rest off the pad ends it with **-100**. Episodes truncate after 1000 steps.
-The task is considered **solved at 200+ points**.
+## Project overview
 
-## What is reward shaping? (for beginners)
+Reinforcement-learning agents learn whatever behaviour maximises the reward
+they are given, which is not always the behaviour that was wanted. Reward
+shaping is the practice of editing that training reward to guide learning,
+and it is a notorious double-edged tool: an edit can steer the agent past
+slow early exploration, or it can hand the agent an easier way to score that
+bypasses the task entirely — a failure mode called reward hacking.
 
-The reward is the score the learning algorithm is trying to maximise.
-**Reward shaping** means tweaking that score during *training* to steer the
-agent toward behaviour you want — "add 1 point for every second you stay
-upright" — while keeping *evaluation* on the real, unmodified score, so you
-can measure whether the steering actually helped.
+This project trains the same PPO agent four times on the same environment,
+changing nothing except the reward used *during* training: the built-in
+reward (baseline), a per-frame time penalty, a deliberately exploitable
+hover bonus, and a potential-based shaping term. Every agent is then
+evaluated on the original, unmodified reward over 300 paired episodes with
+identical initial states, so the comparison measures what the policies
+actually learned rather than what their training scores claimed. The result
+is a compact, reproducible demonstration of both edges of reward shaping —
+a small deadline penalty that helps, a bonus that gets hacked, and the
+theory-correct form that stays neutral.
 
-Shaping is famously double-edged:
+## Experiment design
 
-- **Helpful shaping** nudges the agent past slow early exploration: a small
-  per-frame cost for dawdling turned a dithering lander into a decisive
-  one (see `time_penalty` below: the best mode in the project).
-- **Reward hacking** is what happens when the shaping is easier to exploit
-  than the task itself — the agent maximises *your score* without ever
-  solving *your problem*. This lab reproduces it on purpose: the
-  `hover_bonus` variant pays +1 per frame for being upright and slow
-  *anywhere above the pad*, up to +1000 for hovering in place for a whole
-  episode, versus +100 for actually landing. The trained agents do the
-  economical thing: they hover until the clock runs out (85% of evaluation
-  episodes time out, mean original-reward score −4.4). Goodhart's law —
-  "when a measure becomes a target, it ceases to be a good measure" — in a
-  100-line wrapper.
+**The four reward modes** (implemented in `src/reward_wrappers.py`, each
+pinned by its own `configs/ppo_<mode>.yaml`):
 
-The class of shaping that theory says is safe is *potential-based*
-(`gamma·Φ(s') − Φ(s)`), whose terms **telescope**: hovering in a good state
-earns almost nothing, only *improving* pays, so it cannot be farmed. The
-project's `potential_shaped` variant implements exactly that and stays
-neutral on the true task. All four modes are trained with identical
-hyperparameters and graded on the original reward.
+| Mode | Reward during training | Why it is in the experiment |
+|---|---|---|
+| `baseline` | unchanged built-in reward | the control arm and reference policy |
+| `time_penalty` | built-in reward **− 0.05 per frame** (−50 over a full 1000-step episode) | a deadline: everything else equal, shorter episodes score better |
+| `hover_bonus` | built-in reward **+ 1 per frame** in which the lander is upright and slow (`|angle| < 0.2 rad`, `|vx|` and `|vy| < 0.3`) | **deliberately exploitable:** the condition ignores *where* the lander is, so hovering in place anywhere above the pad pays up to +1000 per episode, versus +100 for landing |
+| `potential_shaped` | built-in reward **+ `gamma·Φ(s') − Φ(s)`** each step, with `Φ = −(1.0·‖(x,y)‖ + 2.0·‖(vx,vy)‖ + 1.0·|angle|)`, minus 0.01 per frame | the theory-correct form: the potential terms telescope and cannot be farmed (see [Reward hacking explained](#reward-hacking-explained)) |
 
-## Installation (Windows, CPU only)
+The hover thresholds were measured, not guessed — they are the 95th
+percentiles of angle and velocity over all frames of 20 converged baseline
+landings, so an ordinary good descent already satisfies the criterion most
+of the time; the bonus is both discoverable by a landing policy and farmable
+by a loitering one.
 
-1. Install [Python 3.11](https://www.python.org/downloads/) (3.10–3.13 also
-   work; Python 3.14 is not supported by stable-baselines3 2.9.0).
-2. Create and activate a virtual environment:
+**Fixed across all four modes** (the RL Baselines3 Zoo's tuned
+LunarLander-v3 recipe, enforced by a config-equality unit test):
 
-   ```powershell
-   python -m venv .venv
-   .venv\Scripts\activate
-   ```
+| Setting | Value |
+|---|---|
+| Algorithm | PPO, `MlpPolicy` (two 64-unit hidden layers) |
+| Learning rate / clip range | 3e-4 / 0.2 |
+| Rollout (`n_steps` × 16 envs) | 1024 × 16 |
+| Batch size / epochs | 64 / 4 |
+| GAE λ / discount γ | 0.98 / 0.999 |
+| Entropy coefficient | 0.01 |
+| Steps per run | 1,015,808 (PPO completes the rollout containing 1,000,000) |
+| Seeds | 3 per mode (12 runs total) |
 
-3. Install the CPU-only PyTorch wheel (avoids the ~2.5 GB CUDA wheel):
-
-   ```powershell
-   pip install torch==2.14.1+cpu --index-url https://download.pytorch.org/whl/cpu
-   ```
-
-4. Install the remaining dependencies:
-
-   ```powershell
-   pip install -r requirements.txt
-   ```
-
-## Usage
-
-All commands run from the repository root with the virtual environment
-activated (`.venv\Scripts\activate`).
-
-```powershell
-# 1. Sanity check: 5 random episodes, prints observations, saves
-#    videos/random_agent.mp4
-python scripts/random_agent.py
-
-# 2. Throughput benchmark (1, 8 and 16 vec envs, 50k steps each)
-python scripts/timing_check.py
-
-# 3. Train the baseline: one process per seed, run the three in parallel
-python -u scripts/train.py --seed 0
-python -u scripts/train.py --seed 1
-python -u scripts/train.py --seed 2
-#    ...or a single seed to completion; --resume continues from the latest
-#    checkpoint if a run is interrupted:
-python -u scripts/train.py --seed 0 --resume
-
-# 4. Evaluate: 100 deterministic episodes per seed on the original reward
-#    (shared episode-seed sequence -> comparable across models)
-python scripts/evaluate.py --seeds 0 1 2 --episodes 100
-
-# 5. Aggregate the evaluation JSONs into results/evaluations/summary.{json,md}
-python scripts/aggregate.py
-
-# 6. Learning curves -> results/figures/learning_curves.png
-python scripts/plot_curves.py
-
-# 7. Landing videos -> videos/ppo_lander_seed{0,1,2}.mp4
-python scripts/record_video.py --seeds 0 1 2
-
-# 8. Test suite
-python -m pytest tests/ -q
-```
-
-### Phase 2: reward-shaped variants (per-mode configs under `configs/`)
-
-```powershell
-# Train a shaped campaign (3 seeds; per-mode configs pin the reward params)
-python -u scripts/train.py --config configs/ppo_time_penalty.yaml --seed 0
-python -u scripts/train.py --config configs/ppo_hover_bonus.yaml --seed 1
-python -u scripts/train.py --config configs/ppo_potential_shaped.yaml --seed 2
-#    --mode <mode> selects the same reward through the CLI (defaults from
-#    src/reward_wrappers.py); run dirs become results/runs/<mode>/seed_{S}/
-
-# Evaluate a mode (100 deterministic episodes per seed, original reward)
-python scripts/evaluate.py --mode time_penalty --episodes 100
-
-# Hover-farming diagnostics (timeouts, hover-state %, hover run lengths)
-python scripts/inspect_hover.py --episodes 20 `
-  --model results/runs/hover_bonus/seed_0/models/ppo_lander_seed0.zip
-
-# Cross-mode comparison: table, paired bootstrap CIs, plots
-python scripts/aggregate.py
-python scripts/compare.py
-
-# Videos for a mode + hover-vs-potential side-by-side clip
-python scripts/record_video.py --mode hover_bonus --seeds 0 1 2
-python scripts/side_by_side.py --seed 0
-```
-
-Everything is config-driven from `configs/ppo_baseline.yaml` (RL Baselines3
-Zoo recipe for LunarLander-v3: `n_envs: 16, n_steps: 1024, batch_size: 64,
-gae_lambda: 0.98, gamma: 0.999, n_epochs: 4, ent_coef: 0.01`).
+**Evaluation rule.** Every model is graded on the *original, unwrapped*
+reward: 100 deterministic episodes per seed (300 per mode) from an
+initial-state sequence shared by all 12 models, so paired differences
+remove initial-state luck. Confidence intervals are 10,000-resample
+bootstraps over the paired episodes.
 
 ## Results
 
-**Training** — 3 seeds × 1M steps (runs overshoot to 1,015,808 steps because
-PPO finishes the current `n_envs × n_steps` rollout), `DummyVecEnv` × 16,
-single-threaded torch, on an i5-1235U laptop (12 logical cores, 15.7 GB RAM):
-
-| seed | wall time | throughput | checkpoints |
-|------|-----------|------------|-------------|
-| 0    | 23.1 min  | 733 steps/s | every 50k → 1M |
-| 1    | 23.8 min  | 712 steps/s | every 50k → 1M |
-| 2    | 24.4 min  | 693 steps/s | every 50k → 1M |
-
-The three seeds trained as parallel background processes, so the whole
-baseline took ~25 minutes of wall time. Deterministic evaluation during
-training (10 episodes every 50k steps) reached +256.1 / +272.6 / +255.3 at
-1M steps — the final model is also the best model for every seed.
-
-**Evaluation** — 100 deterministic episodes per seed on the *unmodified*
-built-in reward (300 episodes total), from
-`results/evaluations/summary.md`:
-
-| seed | mean reward | SEM | min | max | landed | crash | timeout | fuel |
-|------|------------|-----|-----|-----|--------|-------|---------|------|
-| 0    | +250.5     | 2.7 | +124.1 | +296.1 | 98%  | 0% | 2% | 57.0 |
-| 1    | +257.1     | 2.1 | +209.3 | +300.4 | 100% | 0% | 0% | 49.9 |
-| 2    | +256.0     | 2.0 | +209.5 | +293.1 | 100% | 0% | 0% | 54.2 |
-| pooled | +254.6   | —   | +124.1 | +300.4 | 99%  | 0% | 1% | 53.7 |
-
-**Baseline: +254.6 ± 3.5 points across seeds** — comfortably above the
-200-point "solved" bar, with a **99% landing rate and zero crashes** over 300
-episodes. `fuel cost` is the engine-firing proxy `0.3·main + 0.03·side`
-frames. Learning curves (all three seeds crossing 200 well before 1M steps)
-are in `results/figures/learning_curves.png`; example landings are in
-`videos/ppo_lander_seed{0,1,2}.mp4`.
-
-Every number above is read from JSON/NPZ artifacts under `results/`
-produced by real runs (`results/runs/seed_*/summary.json`,
-`results/evaluations/*.json`) — nothing is hand-written or estimated.
-
-**Phase 2 — reward shaping comparison** (identical recipe, original reward,
-300 paired episodes per mode; from `results/evaluations/comparison.md` and
-`paired_differences.md`, 95% bootstrap CIs):
-
-| mode | mean across seeds | landed | timeout | mean len | fuel | paired diff vs baseline |
+| Mode | Mean ± spread over seeds | Landed | Timeout | Mean episode length | Fuel | Paired diff vs baseline (95% CI) |
 |---|---|---|---|---|---|---|
 | baseline | +254.6 ± 3.5 | 99% | 1% | 366 | 53.7 | — |
-| time_penalty | **+262.4 ± 0.9** | 100% | 0% | 310 | 46.7 | **+7.8 [+6.1, +9.6]** |
-| hover_bonus | **−4.4 ± 51.9** | 15% | **85%** | 985 | 179.3 | **−259.0 [−267.2, −250.7]** |
-| potential_shaped | +256.3 ± 16.4 | 97% | 3% | 332 | 44.9 | +1.8 [−2.1, +5.3] (noise) |
+| time_penalty | **+262.4 ± 0.9** | 100% | 0% | 310 | 46.7 | **+7.8, [+6.1, +9.6]** |
+| hover_bonus | **−4.4 ± 51.9** | 15% | **85%** | 985 | 179.3 | **−259.0, [−267.2, −250.7]** |
+| potential_shaped | +256.3 ± 16.4 | 97% | 3% | 332 | 44.9 | +1.8, [−2.1, +5.3] |
 
-The deliberately exploitable hover bonus **reward-hacked**: agents park
-upright and slow above the pad and stay there — 95–96% of frames in the
-hover state, hover *runs* of 684–799 consecutive frames — until the
-1000-step truncation (85% of episodes; 99% on seed 1), burning 3.3× the
-baseline's fuel. The time penalty produced the *best and most decisive*
-landings (100% landed, zero timeouts, lowest fuel). The potential-based
-form, which telescopes and cannot be farmed, stayed neutral. Videos:
-`videos/<mode>_seed{0,1,2}.mp4` and
-`videos/side_by_side_hover_bonus_vs_potential_shaped_seed0.mp4`; full
-write-up with failure notes and reproduction commands in
-[`reports/results.md`](reports/results.md). Caveat: 3 seeds per mode — the
-paired differences are solid *for these 300 shared initial states* and thin
-as claims about the recipes in general.
+All numbers are read directly from the generated artifacts in
+`results/evaluations/` (`comparison.md`, `paired_differences.md`); "spread"
+is the range over the three seeds (the replication unit), not the standard
+error of the pooled episodes, and `fuel` counts engine-firing frames
+(`0.3·main + 0.03·side`).
 
-## Notes for this machine (CPU-only laptops)
+> **Caveat, kept next to the numbers: 3 seeds per mode.** The paired
+> differences above are solid for these 300 shared evaluation episodes on
+> this environment with this recipe; they are thin evidence for a general
+> claim about the shaping recipes (the hover-bonus collapse is large enough
+> that seed noise does not matter — a +7.8 gain is not).
 
-- `torch.set_num_threads(1)` is essential: the default 12-thread intra-op
-  parallelism is 5–10× *slower* for the tiny (64, 64) policy — thread-sync
-  overhead dominates. See `results/timing/` and `progress.md`.
-- `SubprocVecEnv` is ~2.4× faster than `DummyVecEnv` per single run, but
-  stacking it (16 workers × 3 parallel seeds) spawns ~50 processes that each
-  re-import torch, which exceeded the machine's 15.7 GB RAM (spawn-wave OOM,
-  `OMP: Error #111`). The baseline therefore uses `DummyVecEnv`, trading
-  throughput for a stable ~240 MB per seed.
+<img src="assets/figures/comparison.png" width="500"
+     alt="Bar chart of mean original-reward score per mode with per-seed
+          error bars: baseline and time_penalty around +255 to +262,
+          potential_shaped +256 with wider spread, hover_bonus near zero
+          with the widest spread of all.">
 
-## Project layout
+*The time penalty has the highest mean **and** the tightest seed spread
+(±0.9 vs the baseline's ±3.5); the hover bonus's wide bar spans a policy
+that sometimes lands and sometimes parks until the clock runs out.*
+
+<img src="assets/figures/learning_curves.png" width="500"
+     alt="Learning curves: four stacked panels, one per mode, each showing
+          the training reward and the original-reward evaluation score
+          over one million training steps for the three seeds.">
+
+*Training curves versus original-reward evaluation curves for all 12 runs:
+the hover agent's training reward climbs steadily while its evaluation
+score on the real reward stays negative — two lines telling opposite
+stories.*
+
+**Paired differences vs baseline** (300 paired episodes each, bootstrap
+95% CIs). A CI that straddles zero means the difference is not
+distinguishable from noise at this episode count:
+
+| Mode | Mean difference | 95% CI | Verdict |
+|---|---|---|---|
+| time_penalty | +7.8 | [+6.1, +9.6] | Significant |
+| hover_bonus | −259.0 | [−267.2, −250.7] | Significant (catastrophic) |
+| potential_shaped | +1.8 | [−2.1, +5.3] | Within noise |
+
+**Hover diagnostics** (`scripts/inspect_hover.py`, 20 raw-environment
+episodes per model): the hover-bonus agents spend 95–96% of their frames in
+the hover state, with mean runs of 684 / 791 / 799 consecutive frames
+(baseline: 239; time_penalty: 35–50). They park slightly above the pad and
+stay there, burning 3.3× the baseline's fuel (179.3 vs 53.7) to keep
+themselves aloft. One of the three hover seeds (seed 0) found a mixed
+policy — hover long enough to bank the bonus, then sometimes commit to a
+landing (+50.2 on that seed).
+
+## Demo videos
+
+One evaluation episode per mode (seed 0). The full-quality MP4s live in
+`videos/` (not committed to git — the GIFs below are the README copies).
+
+| Mode | Clip | What to watch | Full video |
+|---|---|---|---|
+| baseline | <img src="assets/gifs/baseline_seed0.gif" width="320" alt="GIF: the baseline agent descends steadily and lands on the pad."> | A textbook descent: controlled approach, legs-down touchdown, episode ends. | [MP4](videos/baseline_seed0.mp4) |
+| time_penalty | <img src="assets/gifs/time_penalty_seed0.gif" width="320" alt="GIF: the time-penalty agent flies a shorter, more direct descent and lands."> | Same task, tighter flying: a shorter, more decisive approach than the baseline. | [MP4](videos/time_penalty_seed0.mp4) |
+| hover_bonus | <img src="assets/gifs/hover_bonus_seed0.gif" width="320" alt="GIF: the hover-bonus agent settles above the pad and stays there, engines firing, without landing."> | The exploit: the agent parks upright and nearly motionless above the pad and simply stays there. | [MP4](videos/hover_bonus_seed0.mp4) |
+| potential_shaped | <img src="assets/gifs/potential_shaped_seed0.gif" width="320" alt="GIF: the potential-shaped agent descends and lands normally."> | Shaping that cannot be farmed produces an ordinary, working lander. | [MP4](videos/potential_shaped_seed0.mp4) |
+
+## Reward hacking explained
+
+The two shaped bonuses look similar in code — both add a per-frame term —
+but they differ in one crucial respect: **what a policy earns by standing
+still.**
+
+- The **flat hover bonus** pays +1 *per frame* for being upright and slow,
+  no matter where. Staying still is the highest-paying action available:
+  +1000 for a full episode of hovering versus +100 for landing. The agent
+  is not broken — it is optimising the reward it was given.
+- The **potential-based term** pays `gamma·Φ(s') − Φ(s)` per transition,
+  with `Φ` a bounded function of position, speed and tilt. Summed over an
+  episode, the intermediate states **telescope**: a policy that reaches a
+  good state and *holds it* collects only `(1 − gamma) · T · |Φ|` in total
+  — roughly 2 points for a full 1000-step hover at `gamma = 0.999` — versus
+  about 1000 points from the flat bonus. Only *improvement* (approaching
+  the pad, slowing down, levelling out) pays, so holding still can never
+  be farmed, no matter how long the episode runs.
+
+## A bug I caught
+
+The first hover-bonus campaign silently trained the baseline reward.
+`train.py` resolved the reward mode only from the `reward` block of the
+YAML config, and the baseline config has none — so launching a run with
+`--mode hover_bonus` renamed the output directory and the console banner
+but left the actual reward untouched, and the agent spent a million steps
+on the built-in reward. The failure was invisible to the pipeline: the run
+completed, evaluation produced numbers, and the comparison table rendered
+plausibly. It was caught by two checks the pipeline happened to log
+anyway: the resulting model's weights were **bitwise-identical** to the
+same-seed baseline's, and every one of its 2,406 monitor episodes reported
+`episode_shaping = 0.0` while a healthy time-penalty run logged −16.34 per
+episode. The fix funnels the effective mode (the CLI flag, else the
+config's `reward.mode`) into the wrapper configuration through a single
+`resolve_reward_cfg()` function, covered by regression tests; the invalid
+artifacts were deleted and both affected campaigns retrained. The
+per-episode shaping column is now a standing bring-up check for any new
+shaped run.
+
+## Limitations
+
+- **Three seeds per mode.** The paired differences describe these 300
+  shared evaluation episodes; they are weak evidence for a general claim
+  about the shaping recipes (the hover-bonus collapse is far too large for
+  seed noise — the +7.8 time-penalty gain is not).
+- **One environment, one recipe.** Everything above is LunarLander-v3 with
+  the Zoo's PPO hyperparameters. No per-mode tuning was done, by design —
+  but that also means "time penalty wins" is a statement about these four
+  configurations on this task, not a result about reward shaping in
+  general.
+- **CPU only.** All 12 runs trained on a 12-thread laptop CPU; each took
+  roughly 20–27 minutes. Nothing here required a GPU, but no claim is made
+  about wall-clock efficiency beyond that.
+- **The hover bonus was designed to be exploitable**, so its failure
+  demonstrates that a farmable shaping term *does* get exploited — it says
+  nothing about bonuses keyed to landing proximity, which would be the
+  sensible next experiment.
+
+## Reproduce it
+
+Windows, CPU only. Python 3.11 (3.10–3.13 also work; 3.14 is not supported
+by stable-baselines3 2.9.0).
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install torch==2.14.1+cpu --index-url https://download.pytorch.org/whl/cpu
+pip install -r requirements.txt
+```
+
+All commands run from the repository root with the environment activated:
+
+```powershell
+# Train one campaign: repeat per seed and per mode (4 modes x 3 seeds = 12 runs)
+python -u scripts/train.py --config configs/ppo_hover_bonus.yaml --seed 0
+
+# Evaluate on the original reward (100 deterministic episodes per seed)
+python scripts/evaluate.py --mode hover_bonus --episodes 100
+
+# Summary tables, comparison charts, paired bootstrap CIs
+python scripts/aggregate.py
+python scripts/compare.py
+
+# Hover-farming diagnostics (timeouts, hover-state share, hover run lengths)
+python scripts/inspect_hover.py --episodes 20 `
+  --model results/runs/hover_bonus/seed_0/models/ppo_lander_seed0.zip
+
+# Videos: per-mode episodes + the hover-vs-potential side-by-side clip
+python scripts/record_video.py --mode hover_bonus --seeds 0 1 2
+python scripts/side_by_side.py --seed 0
+
+# Tests (51)
+python -m pytest tests -q
+```
+
+<details>
+<summary>Machine-specific notes (15.7 GB RAM, 12-thread laptop CPU)</summary>
+
+- **Single-threaded torch** (`torch_threads: 1` in every config): the
+  default 12-thread intra-op parallelism is much slower for the tiny
+  (64, 64) policy network.
+- **`DummyVecEnv`, not `SubprocVecEnv`:** a 50k-step benchmark measured
+  SubprocVecEnv at 885.7 steps/s vs DummyVecEnv's 376.6 steps/s, but
+  stacking 16 subprocess workers on top of 3 concurrent seed runs needs
+  roughly 50 processes that each import torch — that exceeded this
+  machine's memory (spawn-wave OOM, OMP Error #111, dead workers).
+  DummyVecEnv keeps three parallel seeds running within 1–2 GB.
+- **All numbers regenerate on this class of machine** in about 20–27
+  minutes per run; the comparison, figures and GIFs in this README are
+  produced by `aggregate.py`, `compare.py` and the asset pipeline
+  described in `reports/results.md`.
+
+</details>
+
+## Repository structure
 
 ```
-configs/     # YAML configs: ppo_baseline.yaml + per-mode ppo_<mode>.yaml
-src/         # reward_wrappers.py (time_penalty / hover_bonus / potential)
-scripts/     # entry points: random_agent, timing_check, train, evaluate,
-             # inspect_hover, aggregate, compare, plot_curves,
-             # record_video, side_by_side
-tests/       # pytest suite (51 tests: wrappers, helpers, episode/JSON
-             # round trips, reward-mode resolution)
-docs/        # resume_bullets.md (job-search material)
-reports/     # results.md (Phase 2 write-up)
-results/
-  runs/seed_*/          # baseline: models/, eval/, best/, monitor/, summary.json
-  runs/<mode>/seed_*/   # shaped campaigns (same layout per seed)
-  evaluations/          # per-seed episode JSONs, summary, comparison, plots
-  figures/              # learning_curves.png
-  timing/               # throughput benchmark CSVs
-  tb/                   # TensorBoard event files
-videos/     # recorded episode clips (random agent + trained agents)
+configs/             # ppo_baseline.yaml + one ppo_<mode>.yaml per shaping variant
+src/reward_wrappers.py    # the four reward modes, ~100 lines
+scripts/             # train.py, evaluate.py, aggregate.py, compare.py,
+                     # inspect_hover.py, record_video.py, side_by_side.py, ...
+tests/               # 51 pytest cases (wrappers, config equality,
+                     # reward-mode resolution, episode JSON round-trip)
+reports/results.md   # full write-up: method, per-mode analysis, failures
+docs/resume_bullets.md    # short-form version of this project
+assets/              # README figures + demo GIFs (tracked, ~1.2 MB total)
+results/evaluations/ # summary, comparison, paired differences + 18 JSONs (tracked)
+results/runs/        # models, monitors, summaries (gitignored; retrain to regenerate)
+videos/              # full-size MP4s (gitignored)
 ```
+
+## Tech stack
+
+Python 3.11 · Gymnasium 1.4.0 (Box2D) · Stable-Baselines3 2.9.0 (PPO) ·
+PyTorch 2.14.1 CPU · pandas · matplotlib · imageio · pytest.
+
+## Author
+
+<!-- TODO: fill in name and links before publishing -->
+**[Your name]** — final-year data science student.
+
+- LinkedIn: [TODO](TODO)
+- GitHub: [TODO](TODO)
+
+The full technical write-up, including documented failures and open
+questions, is in [`reports/results.md`](reports/results.md).

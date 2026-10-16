@@ -42,3 +42,8 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# README assets (figures + demo GIFs, ~1.2 MB total) are intentionally
+# tracked. Keep this block below the binary rules; never ignore assets/.
+!assets/
+!assets/**
