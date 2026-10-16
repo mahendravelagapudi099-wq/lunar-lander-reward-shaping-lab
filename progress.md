@@ -120,3 +120,80 @@ compared against this baseline with the same evaluation tooling).
   (landed) or **-100** when the hull touches the ground or the lander comes
   to rest off-pad (|x| >= 1.0). Episodes truncate at 1000 steps.
 - Engine costs => fuel proxy: `0.3 * main_firings + 0.03 * side_firings`.
+
+
+
+---
+
+# Phase 2 — Reward shaping lab (planned)
+
+Add reward wrappers (time penalty, a deliberately exploitable hover bonus,
+and a potential-based fix), train each with the *identical* PPO recipe,
+then evaluate every model with the **original unmodified reward** and
+compare honestly. Nothing is evaluated through a shaping wrapper; every
+mode differs from the baseline only in the reward signal.
+
+## Phase 2 step log
+
+- [ ] **P2-1 — Reward wrapper (`src/reward_wrappers.py`).** One
+  `ShapingRewardWrapper(gym.Wrapper)`, mode selected in config:
+  `builtin` (identity control), `time_penalty` (small configurable per-frame
+  cost, start 0.05), `hover_bonus` (+1/frame when the lander is upright and
+  slow — absolute angle and |vx|,|vy| below thresholds measured from real
+  baseline landings; deliberately exploitable because it ignores position),
+  `potential_shaped` (potential Phi = weighted sum of distance to pad, speed
+  and tilt; shaping term `gamma * Phi(s') - Phi(s)` with PPO's gamma, plus a
+  small per-frame cost — telescoping, so it cannot be farmed by hovering).
+  Wrapper records the original reward and the shaping term per step and
+  accumulates both per episode in `info`, so the original reward can always
+  be logged/evaluated.
+  **Wrapper order (verified in SB3 source):** `make_vec_env` applies
+  `Monitor` *first* and `wrapper_class` on top, so passing the wrapper as
+  `wrapper_class` makes Monitor log the ORIGINAL reward. Instead we build
+  the stack explicitly as `Monitor(ShapingWrapper(gym.make(...)))` with
+  `info_keywords=("original_reward", "shaping")`: Monitor CSV column `r` is
+  the SHAPED reward, and `original_reward`/`shaping` columns carry the
+  per-episode originals — both curves logged, clearly labelled. To be
+  confirmed with a 2-episode smoke run before training.
+  Unit tests: builtin-identical to the raw env; potential term telescopes to
+  ~0 over a hover-in-place sequence; hover bonus fires exactly when the
+  conditions hold (boundary cases included).
+- [ ] **P2-2 — Training runs.** `train.py` extended with `--mode`
+  (run dirs `results/runs/<mode>/seed_{S}/`; baseline stays at
+  `results/runs/seed_{S}`), reward block in the YAML configs (one config
+  per mode, every attempted config kept). Same total timesteps, network and
+  hyperparameters for every mode — only the reward differs. `EvalCallback`
+  always scores the original reward (eval env is never wrapped). Runs are
+  background, resumable, with a printed estimated wall time. Hover diagnostics
+  (episode length, timeout flag, landing rate, fraction of frames in the hover
+  state) via `scripts/inspect_hover.py` on the raw env. **Each launch waits
+  for explicit go-ahead.** Sequence: time_penalty x3 -> hover_bonus v1 (+1)
+  x3 -> potential_shaped x3; if v1 still lands, hover v2 (+2/+3 per frame,
+  larger budget), each attempt reported honestly.
+- [ ] **P2-3 — Honest evaluation.** `evaluate.py --mode` (100 deterministic
+  episodes/seed on the original reward, wrapper never used for evaluation);
+  `aggregate.py` groups by mode; new `scripts/compare.py` writes
+  `results/comparison.csv`, a bar chart with error bars across modes, paired
+  bootstrap CIs vs baseline over the shared initial states (differences
+  within noise stated plainly), and overlaid shaped-vs-original learning
+  curves (Monitor CSVs) so a divergence is visible if the agent farms the
+  hover bonus.
+- [ ] **P2-4 — Videos.** `record_video.py --mode` -> `videos/<mode>_seed{S}.mp4`
+  (baseline, time_penalty, hover_bonus, potential_shaped) plus one
+  side-by-side hover-bonus-vs-potential clip (moviepy).
+- [ ] **P2-5 — Write-up.** `reports/results.md` (comparison table, plots,
+  factual per-mode sections, failures and surprises), README update with a
+  beginner-level explanation of reward shaping / reward hacking and
+  reproduction commands, `docs/resume_bullets.md` (2 resume bullets + 1
+  LinkedIn post draft, verified numbers only, unconfirmed claims flagged),
+  and a "What I learned" section with prompts for the human to answer
+  (not answered by the agent).
+- [ ] **P2-6 — Verify & report.** Full `pytest` run; honest completion
+  report: which tests passed, which runs finished/failed, how many
+  hover-bonus attempts were needed, whether reward hacking actually
+  appeared, and what the human must still do manually (watch the videos,
+  write their reflections, publish the repo).
+
+**Rules for Phase 2:** no invented results; evaluation always uses the
+original reward; every mode uses identical hyperparameters except the
+reward; no unrequested features.
