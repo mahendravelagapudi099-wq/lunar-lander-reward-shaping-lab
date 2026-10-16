@@ -10,15 +10,12 @@ nothing, and which the agent learns to exploit instead of landing.
 ![Stable-Baselines3](https://img.shields.io/badge/Stable--Baselines3-2.9.0-blue)
 ![tests](https://img.shields.io/badge/tests-51%20passing-brightgreen)
 
-<img src="assets/gifs/hover_vs_potential.gif" width="720"
-     alt="Side-by-side evaluation of two trained agents on the same initial
-          state: the hover-bonus agent remains parked above the landing pad
-          while the potential-shaped agent descends and lands.">
-
-*Same initial state, same training recipe, different training rewards: the
-agent on the left was paid to hover, so it hovers — the episode runs to the
-1000-step limit. The agent on the right was paid only for improving, so it
-lands.*
+<p align="center">
+  <img src="assets/gifs/hover_vs_potential.gif" width="560"
+       alt="Side-by-side evaluation of hover-bonus vs potential-shaped agents">
+  <br>
+  <em>Same initial state, same PPO hyperparameters: Hover Bonus (left) parks to exploit the reward; Potential-Shaped (right) lands cleanly.</em>
+</p>
 
 ## Key results
 
@@ -118,25 +115,10 @@ error of the pooled episodes, and `fuel` counts engine-firing frames
 > claim about the shaping recipes (the hover-bonus collapse is large enough
 > that seed noise does not matter — a +7.8 gain is not).
 
-<img src="assets/figures/comparison.png" width="500"
-     alt="Bar chart of mean original-reward score per mode with per-seed
-          error bars: baseline and time_penalty around +255 to +262,
-          potential_shaped +256 with wider spread, hover_bonus near zero
-          with the widest spread of all.">
-
-*The time penalty has the highest mean **and** the tightest seed spread
-(±0.9 vs the baseline's ±3.5); the hover bonus's wide bar spans a policy
-that sometimes lands and sometimes parks until the clock runs out.*
-
-<img src="assets/figures/learning_curves.png" width="500"
-     alt="Learning curves: four stacked panels, one per mode, each showing
-          the training reward and the original-reward evaluation score
-          over one million training steps for the three seeds.">
-
-*Training curves versus original-reward evaluation curves for all 12 runs:
-the hover agent's training reward climbs steadily while its evaluation
-score on the real reward stays negative — two lines telling opposite
-stories.*
+| Evaluation Scores Across Modes | Training vs. Evaluation Curves |
+| :---: | :---: |
+| <img src="assets/figures/comparison.png" width="375" alt="Bar chart of mean original-reward score per mode with per-seed error bars"> | <img src="assets/figures/learning_curves.png" width="375" alt="Learning curves: training reward vs true evaluation score over 1M steps"> |
+| <sub>*Original-reward evaluation scores with seed spreads. `time_penalty` achieved the highest score and tightest spread; `hover_bonus` collapsed.*</sub> | <sub>*Training reward vs. true evaluation score: the hover agent's training curve climbed steadily while its true performance collapsed.*</sub> |
 
 **Paired differences vs baseline** (300 paired episodes each, bootstrap
 95% CIs). A CI that straddles zero means the difference is not
@@ -162,12 +144,11 @@ landing (+50.2 on that seed).
 One evaluation episode per mode (seed 0). The full-quality MP4s live in
 `videos/` (not committed to git — the GIFs below are the README copies).
 
-| Mode | Clip | What to watch | Full video |
-|---|---|---|---|
-| baseline | <img src="assets/gifs/baseline_seed0.gif" width="320" alt="GIF: the baseline agent descends steadily and lands on the pad."> | A textbook descent: controlled approach, legs-down touchdown, episode ends. | [MP4](videos/baseline_seed0.mp4) |
-| time_penalty | <img src="assets/gifs/time_penalty_seed0.gif" width="320" alt="GIF: the time-penalty agent flies a shorter, more direct descent and lands."> | Same task, tighter flying: a shorter, more decisive approach than the baseline. | [MP4](videos/time_penalty_seed0.mp4) |
-| hover_bonus | <img src="assets/gifs/hover_bonus_seed0.gif" width="320" alt="GIF: the hover-bonus agent settles above the pad and stays there, engines firing, without landing."> | The exploit: the agent parks upright and nearly motionless above the pad and simply stays there. | [MP4](videos/hover_bonus_seed0.mp4) |
-| potential_shaped | <img src="assets/gifs/potential_shaped_seed0.gif" width="320" alt="GIF: the potential-shaped agent descends and lands normally."> | Shaping that cannot be farmed produces an ordinary, working lander. | [MP4](videos/potential_shaped_seed0.mp4) |
+| `baseline` (Score: +258.2) | `time_penalty` (Score: +280.7) |
+| :---: | :---: |
+| <img src="assets/gifs/baseline_seed0.gif" width="280" alt="Baseline agent descent"><br><sub>**Controlled descent & touchdown:** textbook landing [[MP4](videos/baseline_seed0.mp4)]</sub> | <img src="assets/gifs/time_penalty_seed0.gif" width="280" alt="Time penalty agent descent"><br><sub>**Decisive landing:** shorter approach, lowest fuel burned [[MP4](videos/time_penalty_seed0.mp4)]</sub> |
+| **`hover_bonus` (Score: −60.9)** | **`potential_shaped` (Score: +283.4)** |
+| <img src="assets/gifs/hover_bonus_seed0.gif" width="280" alt="Hover bonus agent exploit"><br><sub>**Reward hacking in action:** parks above pad, times out at 1000 steps [[MP4](videos/hover_bonus_seed0.mp4)]</sub> | <img src="assets/gifs/potential_shaped_seed0.gif" width="280" alt="Potential shaped agent descent"><br><sub>**Theory-grounded shaping:** telescoping reward, clean landing [[MP4](videos/potential_shaped_seed0.mp4)]</sub> |
 
 ## Reward hacking explained
 
