@@ -43,3 +43,34 @@ def test_find_resume_checkpoint_returns_none_when_empty(tmp_path):
     model_dir = tmp_path / "models"
     model_dir.mkdir()
     assert train.find_resume_checkpoint(str(model_dir), 2) is None
+
+
+def test_all_reward_configs_share_identical_hyperparameters():
+    """The only thing that differs between modes is the reward block.
+
+    This is the core methodological invariant of the Phase 2 comparison:
+    every shaped mode must train with the baseline's exact recipe.
+    """
+    from src.reward_wrappers import MODES
+
+    configs = {
+        name: train.load_config(os.path.join("configs", name))
+        for name in (
+            "ppo_baseline.yaml",
+            "ppo_time_penalty.yaml",
+            "ppo_hover_bonus.yaml",
+            "ppo_potential_shaped.yaml",
+        )
+    }
+    baseline = configs["ppo_baseline.yaml"]
+    for name, cfg in configs.items():
+        assert cfg["hyperparameters"] == baseline["hyperparameters"], name
+        assert cfg["total_timesteps"] == baseline["total_timesteps"], name
+        assert cfg["n_envs"] == baseline["n_envs"], name
+        assert cfg["vec_env"] == baseline["vec_env"], name
+    shaped = {k: v for k, v in configs.items() if k != "ppo_baseline.yaml"}
+    for name, cfg in shaped.items():
+        assert cfg["reward"]["mode"] in MODES, name
+        assert cfg["reward"]["mode"] != "builtin", "builtin must use the baseline config"
+    modes = {cfg["reward"]["mode"] for cfg in shaped.values()}
+    assert modes == {"time_penalty", "hover_bonus", "potential_shaped"}

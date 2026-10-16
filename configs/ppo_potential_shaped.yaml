@@ -1,0 +1,45 @@
+# PPO + potential-based shaping (Phase 2, mode = potential_shaped).
+# Identical to configs/ppo_baseline.yaml EXCEPT the reward block: each step
+# adds gamma * Phi(s') - Phi(s) with Phi = -(dist_w*||(x,y)|| +
+# speed_w*||(vx,vy)|| + tilt_w*|angle|), minus a small per-frame cost.
+# The potential terms telescope (a constant hover state yields only
+# (1-gamma)*T*|Phi| in total: ~2 points over a full episode with gamma=0.999
+# and |Phi|~2, vs ~1000 for the flat hover bonus), so this form CANNOT be
+# farmed by hovering: it pays for improvement (approach the pad, slow down,
+# level out), never for merely being in a good state. |Phi| is bounded by
+# construction. Hyperparameters: RL Baselines3 Zoo recipe (fetch date
+# 2026-10-15).
+
+env_id: LunarLander-v3
+total_timesteps: 1000000
+n_envs: 16
+vec_env: dummy
+torch_threads: 1
+seed: 0
+est_steps_per_sec: 700
+
+reward:
+  mode: potential_shaped
+  params:
+    potential_dist_w: 1.0   # weight on ||(x, y)||
+    potential_speed_w: 2.0  # weight on ||(vx, vy)||
+    potential_tilt_w: 1.0   # weight on |angle|
+    potential_cost: 0.01    # small per-frame cost (as in time_penalty)
+
+hyperparameters:
+  policy: MlpPolicy
+  learning_rate: 0.0003
+  n_steps: 1024
+  batch_size: 64
+  gae_lambda: 0.98
+  gamma: 0.999
+  n_epochs: 4
+  ent_coef: 0.01
+  clip_range: 0.2
+
+eval:
+  freq_timesteps: 50000
+  episodes: 10
+
+checkpoint:
+  freq_timesteps: 50000

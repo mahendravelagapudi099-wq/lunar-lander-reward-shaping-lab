@@ -1,4 +1,4 @@
-"""Train the PPO baseline on LunarLander-v3 (config-driven, resumable).
+"""Train PPO on LunarLander-v3 (config-driven, resumable, reward-mode aware).
 
 One invocation trains a single seed. Run three seeds as three parallel
 processes, e.g.:
@@ -7,19 +7,26 @@ processes, e.g.:
     .venv\\Scripts\\python.exe scripts\\train.py --seed 1
     .venv\\Scripts\\python.exe scripts\\train.py --seed 2
 
+For a shaped reward (Phase 2), pass ``--mode`` (or set ``reward.mode`` in
+the config); the run then lands under a per-mode directory::
+
+    .venv\\Scripts\\python.exe scripts\\train.py --mode time_penalty --seed 0
+
 Re-running the same seed with ``--resume`` picks up from the latest
 checkpoint (or the final model) and continues training until
 ``total_timesteps`` is reached.
 
 Per-seed layout under the run directory::
 
-    results/runs/seed_<S>/
+    results/runs/<mode>/seed_<S>/   (mode omitted for Phase 1 baseline runs)
         models/                 checkpoints + final model
-        monitor/                per-env Monitor CSVs (episode reward/length)
+        monitor/                per-env Monitor CSVs ('r' = SHAPED reward,
+                                plus episode_original/episode_shaping columns)
         eval/                   evaluations.npz from the EvalCallback
+                                (always on the ORIGINAL, unshaped reward)
         best/                   best model seen during evaluation
         summary.json            run metadata (hyperparameters, wall time, ...)
-    TensorBoard logs go to results/tb/ppo_seed_<S>/.
+    TensorBoard logs go to results/tb/ppo_<mode>_seed_<S>/.
 """
 
 from __future__ import annotations
@@ -29,6 +36,7 @@ import glob
 import json
 import os
 import re
+import sys
 import time
 import warnings
 
@@ -37,12 +45,20 @@ import torch
 import yaml
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback
-from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 
+# Make src/ importable when this script is run directly (python scripts/train.py).
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+from src.reward_wrappers import MODES, wrapper_from_config
+
 CONFIG_PATH = os.path.join("configs", "ppo_baseline.yaml")
 RESULTS_DIR = "results"
+# Monitor keyword columns logged for every mode (see src/reward_wrappers.py):
+# 'r' in the CSV is the SHAPED reward; these columns carry the original.
+MONITOR_INFO_KEYWORDS = ("episode_original", "episode_shaping")
 
 
 def load_config(path: str) -> dict:
@@ -72,6 +88,12 @@ def main() -> None:
     parser.add_argument("--config", default=CONFIG_PATH)
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--total-timesteps", type=int, default=None)
+    parser.add_argument(
+        "--mode",
+        default=None,
+        choices=MODES,
+        help="reward mode (default: the config's reward.mode, or builtin)",
+    )
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args()
 
@@ -85,7 +107,15 @@ def main() -> None:
     n_envs: int = cfg["n_envs"]
     torch.set_num_threads(int(cfg["torch_threads"]))
 
-    run_dir = os.path.join(RESULTS_DIR, "runs", f"seed_{seed}")
+    reward_cfg = cfg.get("reward", {"mode": "builtin"})
+    mode: str = args.mode if args.mode is not None else reward_cfg.get("mode", "builtin")
+    if mode not in MODES:
+        raise SystemExit(
+            f"unknown reward mode {mode!r} in {args.config}; expected one of {MODES}"
+        )
+    gamma = float(cfg["hyperparameters"]["gamma"])
+
+    run_dir = os.path.join(RESULTS_DIR, "runs", mode, f"seed_{seed}")
     model_dir = os.path.join(run_dir, "models")
     monitor_dir = os.path.join(run_dir, "monitor")
     eval_dir = os.path.join(run_dir, "eval")
@@ -94,14 +124,32 @@ def main() -> None:
         os.makedirs(directory, exist_ok=True)
 
     vec_env_cls = {"dummy": DummyVecEnv, "subproc": SubprocVecEnv}[cfg["vec_env"]]
-    env = make_vec_env(
-        cfg["env_id"],
-        n_envs=n_envs,
-        seed=seed,
-        monitor_dir=monitor_dir,
-        vec_env_cls=vec_env_cls,
-    )
-    # Single-env evaluation on the original reward, deterministic, no render.
+
+    # Training env: Monitor OUTSIDE the shaping wrapper, so that the Monitor
+    # CSV's 'r' column is the SHAPED reward (what the agent optimizes) while
+    # the info_keywords columns record the per-episode ORIGINAL reward and
+    # shaping total. Seeding mirrors stable_baselines3's make_vec_env exactly
+    # (action_space.seed(seed + rank) per env, then vec_env.seed(seed)).
+    def make_env(rank: int):
+        def _init() -> gym.Env:
+            env = gym.make(cfg["env_id"], render_mode="rgb_array")
+            env = wrapper_from_config(env, reward_cfg, gamma)
+            env = Monitor(
+                env,
+                filename=os.path.join(monitor_dir, str(rank)),
+                info_keywords=MONITOR_INFO_KEYWORDS,
+            )
+            if seed is not None:
+                env.action_space.seed(seed + rank)
+            return env
+
+        return _init
+
+    env = vec_env_cls([make_env(i) for i in range(n_envs)])
+    if seed is not None:
+        env.seed(seed)
+    # Single-env evaluation on the original reward, deterministic, no render:
+    # the eval env is NEVER wrapped with the shaping wrapper.
     eval_env = Monitor(
         gym.make(cfg["env_id"]),
         filename=os.path.join(eval_dir, "eval_monitor"),
@@ -157,9 +205,14 @@ def main() -> None:
     )
 
     print(
-        f"Seed {seed}: training for {remaining:,} steps "
+        f"Seed {seed} (mode={mode}): training for {remaining:,} steps "
         f"({done_steps:,} -> {total_timesteps:,}), torch threads "
         f"{torch.get_num_threads()}, vec env: {cfg['vec_env']} x {n_envs}"
+    )
+    est_sps = float(cfg.get("est_steps_per_sec", 700.0))
+    print(
+        f"Estimated wall time: ~{remaining / est_sps / 60.0:.0f} min "
+        f"at ~{est_sps:.0f} steps/s (measured on this machine)"
     )
     start = time.perf_counter()
     # Single-env eval is always a DummyVecEnv, so SB3 warns when the training
@@ -174,7 +227,7 @@ def main() -> None:
         model.learn(
             total_timesteps=remaining,
             callback=[eval_callback, checkpoint_callback],
-            tb_log_name=f"ppo_seed{seed}",
+            tb_log_name=f"ppo_{mode}_seed{seed}",
             reset_num_timesteps=not args.resume,
         )
     elapsed = time.perf_counter() - start
@@ -195,6 +248,12 @@ def main() -> None:
 
     summary = {
         "seed": seed,
+        "reward": {
+            "mode": mode,
+            "params": reward_cfg.get("params", {}),
+            "monitor_logs": "r = shaped reward; episode_original/episode_shaping columns",
+            "eval_reward": "original (the shaping wrapper is never used for evaluation)",
+        },
         "env_id": cfg["env_id"],
         "algorithm": "PPO",
         "hyperparameters": cfg["hyperparameters"],

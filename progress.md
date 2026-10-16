@@ -173,6 +173,24 @@ mode differs from the baseline only in the reward signal.
   for explicit go-ahead.** Sequence: time_penalty x3 -> hover_bonus v1 (+1)
   x3 -> potential_shaped x3; if v1 still lands, hover v2 (+2/+3 per frame,
   larger budget), each attempt reported honestly.
+  - **Tooling DONE (uncommitted→committed):** `train.py` builds the training
+    env as `Monitor(ShapingRewardWrapper(gym.make(...)))` with seeding that
+    mirrors SB3's `make_vec_env` exactly (verified against
+    `stable_baselines3/common/env_util.py`: `action_space.seed(seed + rank)`
+    per env, then `vec_env.seed(seed)`); eval env stays unwrapped.
+    Smoke-run output in `time_penalty` mode confirmed Monitor CSV header
+    `r,l,t,episode_original,episode_shaping` with `r` = shaped reward and
+    `-2.95 = 59 × -0.05` for `episode_shaping`. `--resume` verified against
+    the new per-mode dirs. Configs `configs/ppo_{time_penalty,hover_bonus,
+    potential_shaped}.yaml` carry the *identical* Zoo hyperparameters —
+    enforced by a new test (`test_all_reward_configs_share_identical_
+    hyperparameters`). `scripts/inspect_hover.py` verified on the baseline
+    model (20 episodes: +249.9 ± 7.9, 95% landed, 5% timeout, **88% of
+    frames in the hover state**, mean hover run 239 frames — matches the
+    87% threshold measurement, so the hover criterion describes what a good
+    landing policy already does). 29 tests pass.
+  - **Runs NOT started:** awaiting go-ahead for the time_penalty campaign
+    (3 seeds × ~23 min, run as background processes, ~25 min wall).
 - [ ] **P2-3 — Honest evaluation.** `evaluate.py --mode` (100 deterministic
   episodes/seed on the original reward, wrapper never used for evaluation);
   `aggregate.py` groups by mode; new `scripts/compare.py` writes

@@ -1,0 +1,44 @@
+# PPO + hover bonus shaping (Phase 2, mode = hover_bonus).
+# Identical to configs/ppo_baseline.yaml EXCEPT the reward block: +1 per
+# frame in which the lander is upright and slow. DELIBERATELY EXPLOITABLE:
+# the condition ignores WHERE the lander is, so the bonus can be farmed by
+# hovering in place anywhere above the pad (up to +1000 for a full
+# 1000-step episode, vs +100 for landing).
+# Thresholds were measured, not guessed: |angle| p95 = 0.21 rad and
+# |vx|/|vy| p95 ~= 0.33/0.30 over ALL frames of 20 converged-baseline
+# landings; a good descent satisfies the criterion ~87% of frames, so the
+# bonus is discoverable by a landing policy AND farmable by a hoverer.
+# Hyperparameters: RL Baselines3 Zoo recipe (fetch date 2026-10-15).
+
+env_id: LunarLander-v3
+total_timesteps: 1000000
+n_envs: 16
+vec_env: dummy
+torch_threads: 1
+seed: 0
+est_steps_per_sec: 700
+
+reward:
+  mode: hover_bonus
+  params:
+    hover_bonus: 1.0     # per frame satisfying the hover condition
+    hover_angle: 0.2     # rad (~11.5 degrees), |angle| below this
+    hover_speed: 0.3     # both |vx| and |vy| below this
+
+hyperparameters:
+  policy: MlpPolicy
+  learning_rate: 0.0003
+  n_steps: 1024
+  batch_size: 64
+  gae_lambda: 0.98
+  gamma: 0.999
+  n_epochs: 4
+  ent_coef: 0.01
+  clip_range: 0.2
+
+eval:
+  freq_timesteps: 50000
+  episodes: 10
+
+checkpoint:
+  freq_timesteps: 50000
