@@ -135,7 +135,7 @@ mode differs from the baseline only in the reward signal.
 
 ## Phase 2 step log
 
-- [ ] **P2-1 — Reward wrapper (`src/reward_wrappers.py`).** One
+- [x] **P2-1 — Reward wrapper (`src/reward_wrappers.py`).** One
   `ShapingRewardWrapper(gym.Wrapper)`, mode selected in config:
   `builtin` (identity control), `time_penalty` (small configurable per-frame
   cost, start 0.05), `hover_bonus` (+1/frame when the lander is upright and
@@ -147,14 +147,17 @@ mode differs from the baseline only in the reward signal.
   Wrapper records the original reward and the shaping term per step and
   accumulates both per episode in `info`, so the original reward can always
   be logged/evaluated.
-  **Wrapper order (verified in SB3 source):** `make_vec_env` applies
-  `Monitor` *first* and `wrapper_class` on top, so passing the wrapper as
-  `wrapper_class` makes Monitor log the ORIGINAL reward. Instead we build
-  the stack explicitly as `Monitor(ShapingWrapper(gym.make(...)))` with
-  `info_keywords=("original_reward", "shaping")`: Monitor CSV column `r` is
-  the SHAPED reward, and `original_reward`/`shaping` columns carry the
-  per-episode originals — both curves logged, clearly labelled. To be
-  confirmed with a 2-episode smoke run before training.
+  **Wrapper order (verified empirically, 2-episode smoke run):**
+  `make_vec_env` applies `Monitor` *first* and `wrapper_class` on top
+  (verified in `stable_baselines3/common/env_util.py`), so passing the
+  wrapper as `wrapper_class` makes Monitor log the ORIGINAL reward. Instead
+  we build the stack explicitly as
+  `Monitor(ShapingRewardWrapper(gym.make(...)))` with
+  `info_keywords=("episode_original", "episode_shaping")`: smoke-run output
+  confirmed CSV columns `['r', 'l', 't', 'episode_original',
+  'episode_shaping']` where `r` is the SHAPED reward and the keyword columns
+  are the per-episode originals — both reward streams logged, clearly
+  labelled.
   Unit tests: builtin-identical to the raw env; potential term telescopes to
   ~0 over a hover-in-place sequence; hover bonus fires exactly when the
   conditions hold (boundary cases included).
