@@ -250,9 +250,19 @@ mode differs from the baseline only in the reward signal.
   difference +7.8, 95% CI [+6.1, +9.6] -> SIGNIFICANT on these initial
   states (caveat: 3 seeds is thin for a claim about the recipe itself).**
   39 tests pass.
-- [ ] **P2-4 — Videos.** `record_video.py --mode` -> `videos/<mode>_seed{S}.mp4`
-  (baseline, time_penalty, hover_bonus, potential_shaped) plus one
-  side-by-side hover-bonus-vs-potential clip (moviepy).
+- [~] **P2-4 — Videos.** `record_video.py --mode` (mode-aware model
+  discovery mirroring `evaluate.py`; uniform naming
+  `videos/<mode>_seed{S}.mp4` for baseline / time_penalty / hover_bonus /
+  potential_shaped; the Phase 1 legacy `ppo_lander_seed{S}.mp4` files stay
+  untouched). New `scripts/side_by_side.py` (moviepy) composes one clip with
+  the hover-bonus episode on the left and the potential-shaped episode on
+  the right (shorter side padded with black). 8 new tests (47 total).
+  Recorded so far: `baseline_seed{0,1,2}.mp4` (+258.2 / +278.0 / +270.5 —
+  byte-identical to the Phase 1 legacy recordings, i.e. reproducible) and
+  `time_penalty_seed{0,1,2}.mp4` (+280.7 / +283.2 / +281.8, lengths
+  332/313/320 — no hover-farming visible: short decisive landings).
+  Remaining: hover_bonus + potential_shaped videos and the side-by-side clip
+  once those campaigns finish.
 - [ ] **P2-5 — Write-up.** `reports/results.md` (comparison table, plots,
   factual per-mode sections, failures and surprises), README update with a
   beginner-level explanation of reward shaping / reward hacking and
