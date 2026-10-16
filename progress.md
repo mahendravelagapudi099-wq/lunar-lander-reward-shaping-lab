@@ -205,6 +205,29 @@ mode differs from the baseline only in the reward signal.
     length 305-321 (max 347) vs the baseline's timeout-containing 5%.
     The time penalty produced short, decisive landings — the opposite of
     hover-farming.
+  - **hover_bonus + potential_shaped first attempts INVALIDATED and
+    retrained (2026-10-16):** the first 3 x hover_bonus campaign (and the
+    first ~20 min of potential_shaped, killed) was silently trained on the
+    *builtin* reward. Cause: `train.py` read the reward mode from the YAML's
+    `reward` block (the baseline config has none -> `builtin`) while
+    `--mode` only picked the output directory — banner mode and wrapper mode
+    disagreed. Detection: the hover 100-episode eval produced episodes
+    byte-identical to baseline's, its model's policy weights are
+    bitwise-identical to baseline's (same-seed deterministic replay of the
+    builtin training), and every one of its 2,406 monitor episodes logged
+    `episode_shaping = 0.0` (the healthy time_penalty run showed -16.34).
+    Fix: new `resolve_reward_cfg()` routes the effective mode (CLI `--mode`,
+    else the config's `reward.mode`) into the config that builds the
+    wrapper, + 4 regression tests (51 pass). Verified with a 16,384-step
+    smoke run (`--mode hover_bonus` + baseline config): mean
+    `episode_shaping = +7.07`. All invalid artifacts deleted (run dirs, eval
+    JSONs, TensorBoard logs); both campaigns relaunched with their per-mode
+    configs (`configs/ppo_{hover_bonus,potential_shaped}.yaml`, params
+    pinned). Monitors after 90 s: hover shaping +9.2/+14.3/+10.0 per
+    episode, potential shaping nonzero in 100% of episodes — the wrappers
+    are on. Lesson: every campaign launch records the config file it used,
+    and `episode_shaping != 0` in the first monitor batch is the bring-up
+    check for any shaped run.
   - **Smart App Control blocker RESOLVED:** on the retry signal (~19:20
     local) `import torch`/`stable_baselines3` were healthy again and all 29
     tests passed before relaunch; the policy flip was transient-enforcement

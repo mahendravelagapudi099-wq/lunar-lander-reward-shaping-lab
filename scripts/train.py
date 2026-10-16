@@ -82,6 +82,28 @@ def find_resume_checkpoint(model_dir: str, seed: int) -> str | None:
         return None
     return max(checkpoints)[1]
 
+
+def resolve_reward_cfg(args: argparse.Namespace, cfg: dict) -> dict:
+    """Return the reward config whose mode is the *effective* training mode.
+
+    The mode comes from ``--mode`` when it is given, otherwise from the
+    config's ``reward.mode`` (``builtin`` when the block is absent). The
+    resolved mode is always written into the returned config, because
+    :func:`src.reward_wrappers.wrapper_from_config` builds the training
+    wrapper from that config: letting the banner mode and the wrapper mode
+    disagree previously trained ``--mode hover_bonus`` on the *builtin*
+    reward (byte-identical policy weights to baseline, zero shaping in the
+    monitor logs, wasted 3 x 25 min of training).
+    """
+    reward_cfg = dict(cfg.get("reward", {"mode": "builtin"}))
+    if args.mode is not None:
+        reward_cfg["mode"] = args.mode
+    mode = reward_cfg.get("mode", "builtin")
+    if mode not in MODES:
+        raise SystemExit(f"unknown reward mode {mode!r}; expected one of {MODES}")
+    return reward_cfg
+
+
 def main() -> None:
     """Train one seed of the PPO baseline."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -107,12 +129,8 @@ def main() -> None:
     n_envs: int = cfg["n_envs"]
     torch.set_num_threads(int(cfg["torch_threads"]))
 
-    reward_cfg = cfg.get("reward", {"mode": "builtin"})
-    mode: str = args.mode if args.mode is not None else reward_cfg.get("mode", "builtin")
-    if mode not in MODES:
-        raise SystemExit(
-            f"unknown reward mode {mode!r} in {args.config}; expected one of {MODES}"
-        )
+    reward_cfg = resolve_reward_cfg(args, cfg)
+    mode: str = reward_cfg["mode"]
     gamma = float(cfg["hyperparameters"]["gamma"])
 
     run_dir = os.path.join(RESULTS_DIR, "runs", mode, f"seed_{seed}")

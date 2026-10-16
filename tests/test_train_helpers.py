@@ -1,7 +1,9 @@
 """Tests for the training entry point's helper functions."""
 
+import argparse
 import os
 
+import pytest
 import train
 
 
@@ -74,3 +76,42 @@ def test_all_reward_configs_share_identical_hyperparameters():
         assert cfg["reward"]["mode"] != "builtin", "builtin must use the baseline config"
     modes = {cfg["reward"]["mode"] for cfg in shaped.values()}
     assert modes == {"time_penalty", "hover_bonus", "potential_shaped"}
+
+
+def _reward_args(mode: str | None) -> argparse.Namespace:
+    """A Namespace stub carrying only the reward-related CLI field."""
+    return argparse.Namespace(mode=mode)
+
+
+def test_resolve_reward_cfg_cli_mode_overrides_builtin_default():
+    """--mode must flow into the reward config that builds the wrapper.
+
+    Regression test for the bug that trained ``--mode`` runs on the builtin
+    reward while the banner claimed the shaped mode. The baseline config has
+    no reward block, so the CLI mode is the only source for the wrapper mode.
+    """
+    cfg = train.load_config(os.path.join("configs", "ppo_baseline.yaml"))
+    resolved = train.resolve_reward_cfg(_reward_args("hover_bonus"), cfg)
+    assert resolved["mode"] == "hover_bonus"
+    assert "reward" not in cfg  # the input config must not be mutated
+
+
+def test_resolve_reward_cfg_defaults_to_config_reward_block():
+    """Without --mode, the config's reward mode wins and its params are kept."""
+    cfg = train.load_config(os.path.join("configs", "ppo_time_penalty.yaml"))
+    resolved = train.resolve_reward_cfg(_reward_args(None), cfg)
+    assert resolved["mode"] == "time_penalty"
+    assert resolved["params"]["time_penalty"] == 0.05
+
+
+def test_resolve_reward_cfg_cli_mode_wins_over_config_block():
+    """An explicit --mode is authoritative even when the config names another mode."""
+    cfg = train.load_config(os.path.join("configs", "ppo_hover_bonus.yaml"))
+    resolved = train.resolve_reward_cfg(_reward_args("potential_shaped"), cfg)
+    assert resolved["mode"] == "potential_shaped"
+
+
+def test_resolve_reward_cfg_rejects_unknown_mode():
+    """An unknown mode must fail loudly before any training starts."""
+    with pytest.raises(SystemExit):
+        train.resolve_reward_cfg(_reward_args("not_a_reward_mode"), {})
