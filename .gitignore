@@ -1,3 +1,23 @@
+# Local-only storage
+local/
+
+# Secrets and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+*.token
+
+# Personal drafts and notes
+drafts/
+ai-notes/
+LINKEDIN*.md
+HOW_TO_USE*.md
+PROMPT*.md
+chat-export*
+
 # Models and large binaries
 models/
 *.zip
@@ -42,6 +62,8 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+*.tmp
+*.bak
 
 # README assets (figures + demo GIFs, ~1.2 MB total) are intentionally
 # tracked. Keep this block below the binary rules; never ignore assets/.
