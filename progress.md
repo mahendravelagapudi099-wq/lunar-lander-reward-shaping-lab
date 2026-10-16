@@ -228,6 +228,31 @@ mode differs from the baseline only in the reward signal.
     are on. Lesson: every campaign launch records the config file it used,
     and `episode_shaping != 0` in the first monitor batch is the bring-up
     check for any shaped run.
+  - **hover_bonus + potential_shaped retrained (2026-10-16):** 3 seeds each
+    x 1,000,000 steps (1,015,808 actual), all six as one concurrent batch,
+    25.0-26.6 min/seed for hover (637-678 steps/s) and 19.5-22.0 min/seed
+    for potential (770-869 steps/s) — six DummyVecEnv runs fit the 12
+    threads with room to spare. Per-seed summary.json confirms the correct
+    `reward.mode` and params. Training-time accounting (monitor CSVs):
+    hover_bonus mean episode shaping +254.9/+307.7/+279.0 with original
+    reward -41.6/-44.0/-49.5 (the agent maximizes the bonus, not the
+    landing); potential_shaped mean shaping -1.97/-1.95/-1.91 — the
+    telescoping potential stays small by construction, exactly as designed.
+    100-episode formal evaluations (original reward): hover_bonus
+    +50.3/-53.1/-10.4 per seed (61%/99%/94% timeouts, landed 39%/1%/4%,
+    mean length 963-998 — hovering at the cap); potential_shaped
+    +264.9/+266.6/+237.4 (95-100% landed, 0-4% timeouts, solved 96%).
+    `inspect_hover.py` (20 episodes, original reward): hover_bonus models
+    spend 95-96% of frames in the hover state with mean hover RUN 684-799
+    consecutive frames (vs the baseline's 239 and time_penalty's 35-50) and
+    land 0-30% — full reward hacking; potential_shaped passes through the
+    hover state in 28-92-frame bursts mid-descent (50-80% of frames) and
+    lands 95-100%. Final comparison (`compare.py`, 300 paired episodes vs
+    baseline): baseline +254.6 +/- 3.5; time_penalty +262.4 +/- 0.9 (paired
+    +7.8, CI [+6.1, +9.6] -> SIGNIFICANT); hover_bonus -4.4 +/- 51.9
+    (paired -259.0, CI [-267.2, -250.7] -> SIGNIFICANT, catastrophic);
+    potential_shaped +256.3 +/- 16.4 (paired +1.8, CI [-2.1, +5.3] -> WITHIN
+    NOISE, the theory-correct form is neutral on the true objective here).
   - **Smart App Control blocker RESOLVED:** on the retry signal (~19:20
     local) `import torch`/`stable_baselines3` were healthy again and all 29
     tests passed before relaunch; the policy flip was transient-enforcement
@@ -273,7 +298,7 @@ mode differs from the baseline only in the reward signal.
   difference +7.8, 95% CI [+6.1, +9.6] -> SIGNIFICANT on these initial
   states (caveat: 3 seeds is thin for a claim about the recipe itself).**
   39 tests pass.
-- [~] **P2-4 — Videos.** `record_video.py --mode` (mode-aware model
+- [x] **P2-4 — Videos.** `record_video.py --mode` (mode-aware model
   discovery mirroring `evaluate.py`; uniform naming
   `videos/<mode>_seed{S}.mp4` for baseline / time_penalty / hover_bonus /
   potential_shaped; the Phase 1 legacy `ppo_lander_seed{S}.mp4` files stay
@@ -283,9 +308,14 @@ mode differs from the baseline only in the reward signal.
   Recorded so far: `baseline_seed{0,1,2}.mp4` (+258.2 / +278.0 / +270.5 —
   byte-identical to the Phase 1 legacy recordings, i.e. reproducible) and
   `time_penalty_seed{0,1,2}.mp4` (+280.7 / +283.2 / +281.8, lengths
-  332/313/320 — no hover-farming visible: short decisive landings).
-  Remaining: hover_bonus + potential_shaped videos and the side-by-side clip
-  once those campaigns finish.
+  332/313/320 — no hover-farming visible: short decisive landings). After
+  the retrain: `hover_bonus_seed{0,1,2}.mp4` (+168.9 len 902 / -60.9 len
+  1000 / -21.8 len 1000 — two episodes never land, one lands after a long
+  hover) and `potential_shaped_seed{0,1,2}.mp4` (+283.4 len 324 / +296.0
+  len 248 / +256.0 len 415 — clean decisive landings), plus
+  `side_by_side_hover_bonus_vs_potential_shaped_seed0.mp4` (1200x400,
+  hover left / potential right, 18 s). Videos stay gitignored as
+  regenerable artifacts.
 - [ ] **P2-5 — Write-up.** `reports/results.md` (comparison table, plots,
   factual per-mode sections, failures and surprises), README update with a
   beginner-level explanation of reward shaping / reward hacking and

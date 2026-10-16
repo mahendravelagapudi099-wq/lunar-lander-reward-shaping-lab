@@ -1,0 +1,626 @@
+{
+  "env_id": "LunarLander-v3",
+  "reward_mode": "hover_bonus",
+  "seed": 1,
+  "model_source": "final",
+  "model_path": "results\\runs\\hover_bonus\\seed_1\\models\\ppo_lander_seed1.zip",
+  "deterministic": true,
+  "episode_seed_base": 1000,
+  "episodes": [
+    {
+      "reward": -60.896299143626905,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 180.92999999999998
+    },
+    {
+      "reward": -28.677212077798668,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 188.21999999999997
+    },
+    {
+      "reward": -80.45425522893696,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 178.23
+    },
+    {
+      "reward": -58.02185698285856,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 182.01
+    },
+    {
+      "reward": -41.87628102373142,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 185.51999999999998
+    },
+    {
+      "reward": -70.19250954647262,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 182.55
+    },
+    {
+      "reward": -47.08096729521119,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 187.14
+    },
+    {
+      "reward": -34.55321840412341,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 185.51999999999998
+    },
+    {
+      "reward": -79.3320893119644,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 182.28
+    },
+    {
+      "reward": -45.02583568243804,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 186.06
+    },
+    {
+      "reward": -47.691080423247634,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 181.2
+    },
+    {
+      "reward": -92.19178218054289,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 182.55
+    },
+    {
+      "reward": -82.63813721087338,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 183.9
+    },
+    {
+      "reward": -2.626901404441724,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 183.36
+    },
+    {
+      "reward": -89.57944570747023,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 184.71
+    },
+    {
+      "reward": -15.336124848996882,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 183.63
+    },
+    {
+      "reward": -51.80388784810578,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 184.17
+    },
+    {
+      "reward": -36.693162585880586,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 187.14
+    },
+    {
+      "reward": -56.247494182989804,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 184.71
+    },
+    {
+      "reward": -53.51832165170458,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 185.25
+    },
+    {
+      "reward": -56.894670128342376,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 180.11999999999998
+    },
+    {
+      "reward": -76.01990446190514,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 178.76999999999998
+    },
+    {
+      "reward": -32.80240284068706,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 186.32999999999998
+    },
+    {
+      "reward": -75.40637045332667,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 185.51999999999998
+    },
+    {
+      "reward": -0.4689961384072552,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 183.09
+    },
+    {
+      "reward": -70.47679186239645,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 179.57999999999998
+    },
+    {
+      "reward": 74.27265014158307,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 151.56
+    },
+    {
+      "reward": -71.70774358992719,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 178.76999999999998
+    },
+    {
+      "reward": -57.8899771841834,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 185.51999999999998
+    },
+    {
+      "reward": -75.77537009597829,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 187.14
+    },
+    {
+      "reward": -60.51208792439224,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 184.71
+    },
+    {
+      "reward": -69.15482792449285,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 181.73999999999998
+    },
+    {
+      "reward": -43.77155124787473,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 182.28
+    },
+    {
+      "reward": -64.69224324076336,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 183.63
+    },
+    {
+      "reward": -77.86623143118874,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 181.73999999999998
+    },
+    {
+      "reward": -77.80172950832763,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 184.71
+    },
+    {
+      "reward": -74.884172143688,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 180.11999999999998
+    },
+    {
+      "reward": -14.361655494216183,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 183.36
+    },
+    {
+      "reward": -65.76573348213518,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 182.28
+    },
+    {
+      "reward": -67.39708111300244,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 184.71
+    },
+    {
+      "reward": -20.68788068808438,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 186.06
+    },
+    {
+      "reward": -70.59379781166568,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 180.66
+    },
+    {
+      "reward": 50.63012889864157,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 181.47
+    },
+    {
+      "reward": -82.63679859824572,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 188.21999999999997
+    },
+    {
+      "reward": -71.78805013451517,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 180.39
+    },
+    {
+      "reward": -57.03033647853153,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 182.82
+    },
+    {
+      "reward": -68.92845238182028,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 186.6
+    },
+    {
+      "reward": 67.12404852136187,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 166.65
+    },
+    {
+      "reward": -28.51568504541738,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 183.9
+    },
+    {
+      "reward": -24.921791232543278,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 189.84
+    },
+    {
+      "reward": -81.41251155955602,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 184.17
+    },
+    {
+      "reward": -48.966622372707185,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 183.9
+    },
+    {
+      "reward": -67.93060924284303,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 178.23
+    },
+    {
+      "reward": -80.70929203433676,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 182.82
+    },
+    {
+      "reward": 14.388271626824277,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 182.28
+    },
+    {
+      "reward": -50.96315949161132,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 181.2
+    },
+    {
+      "reward": -53.62282915377319,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 187.95
+    },
+    {
+      "reward": -83.24799856138652,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 187.67999999999998
+    },
+    {
+      "reward": 4.022161375430203,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 188.73000000000002
+    },
+    {
+      "reward": -70.8482495797764,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 182.28
+    },
+    {
+      "reward": -74.01268804522127,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 183.36
+    },
+    {
+      "reward": -82.98867880736385,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 180.66
+    },
+    {
+      "reward": -66.91104664583926,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 183.63
+    },
+    {
+      "reward": -63.08782528767237,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 182.01
+    },
+    {
+      "reward": -61.55436629302984,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 183.63
+    },
+    {
+      "reward": -46.49310266560704,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 183.36
+    },
+    {
+      "reward": -77.30768177515179,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 182.28
+    },
+    {
+      "reward": -56.507730082849555,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 188.76
+    },
+    {
+      "reward": -51.33114872788572,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 181.46999999999997
+    },
+    {
+      "reward": -62.51978524584412,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 187.95
+    },
+    {
+      "reward": -71.13665832394213,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 179.57999999999998
+    },
+    {
+      "reward": -50.63784128176368,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 185.51999999999998
+    },
+    {
+      "reward": -28.33860058396428,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 180.39
+    },
+    {
+      "reward": -44.53156047013163,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 184.98
+    },
+    {
+      "reward": -79.34054807893497,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 185.25
+    },
+    {
+      "reward": -78.65040619960524,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 179.31
+    },
+    {
+      "reward": -63.69906414608825,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 182.28
+    },
+    {
+      "reward": -105.23387019897316,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 183.9
+    },
+    {
+      "reward": -15.656416038629303,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 182.55
+    },
+    {
+      "reward": -55.927874016036036,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 185.79
+    },
+    {
+      "reward": 193.80350306229616,
+      "length": 788,
+      "outcome": "landed",
+      "fuel_cost": 142.95
+    },
+    {
+      "reward": -30.794492744233594,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 186.32999999999998
+    },
+    {
+      "reward": -70.36910836685081,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 183.09
+    },
+    {
+      "reward": -99.41827768708936,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 186.32999999999998
+    },
+    {
+      "reward": -39.449799808244556,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 185.51999999999998
+    },
+    {
+      "reward": -72.49553564474205,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 185.25
+    },
+    {
+      "reward": -82.44595396522685,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 186.06
+    },
+    {
+      "reward": -71.06469230795302,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 180.92999999999998
+    },
+    {
+      "reward": -80.031199133208,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 183.09
+    },
+    {
+      "reward": -1.0045393452364104,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 183.09
+    },
+    {
+      "reward": -114.84359709683812,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 186.32999999999998
+    },
+    {
+      "reward": -87.3447466002564,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 182.82
+    },
+    {
+      "reward": -61.89847030216665,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 186.06
+    },
+    {
+      "reward": -91.1654811292609,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 182.55
+    },
+    {
+      "reward": -72.74352625897514,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 182.28
+    },
+    {
+      "reward": -84.5229239200843,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 181.2
+    },
+    {
+      "reward": -71.59896699103001,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 187.14
+    },
+    {
+      "reward": -39.91618437866298,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 189.03
+    },
+    {
+      "reward": -64.22832513135022,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 188.21999999999997
+    },
+    {
+      "reward": -74.96058720761901,
+      "length": 1000,
+      "outcome": "timeout",
+      "fuel_cost": 182.55
+    }
+  ],
+  "summary": {
+    "episodes": 100,
+    "mean_reward": -53.12813004680889,
+    "std_reward": 40.71857630297734,
+    "stderr_reward": 4.071857630297734,
+    "min_reward": -114.84359709683812,
+    "max_reward": 193.80350306229616,
+    "median_reward": -63.39344471688031,
+    "mean_length": 997.88,
+    "mean_fuel_cost": 182.88089999999997,
+    "solved_rate_ge200": 0.0,
+    "landed_rate": 0.01,
+    "crash_rate": 0.0,
+    "timeout_rate": 0.99
+  }
+}

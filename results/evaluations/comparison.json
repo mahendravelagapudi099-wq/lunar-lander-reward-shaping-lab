@@ -22,6 +22,48 @@
       "solved_rate_ge200": 0.9933333333333333
     },
     {
+      "group": "hover_bonus_final",
+      "mode": "hover_bonus",
+      "model_source": "final",
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "n_seeds": 3,
+      "n_episodes": 300,
+      "mean_across_seeds": -4.438862491107655,
+      "std_across_seeds": 51.94701572250156,
+      "pooled_mean_reward": -4.43886249110766,
+      "landed_rate": 0.14666666666666667,
+      "crash_rate": 0.006666666666666667,
+      "timeout_rate": 0.8466666666666667,
+      "mean_length": 985.33,
+      "mean_fuel_cost": 179.31719999999999,
+      "solved_rate_ge200": 0.006666666666666667
+    },
+    {
+      "group": "potential_shaped_final",
+      "mode": "potential_shaped",
+      "model_source": "final",
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "n_seeds": 3,
+      "n_episodes": 300,
+      "mean_across_seeds": 256.311870071361,
+      "std_across_seeds": 16.397245660251013,
+      "pooled_mean_reward": 256.311870071361,
+      "landed_rate": 0.97,
+      "crash_rate": 0.0033333333333333335,
+      "timeout_rate": 0.02666666666666667,
+      "mean_length": 331.79333333333335,
+      "mean_fuel_cost": 44.8704,
+      "solved_rate_ge200": 0.96
+    },
+    {
       "group": "time_penalty_final",
       "mode": "time_penalty",
       "model_source": "final",
