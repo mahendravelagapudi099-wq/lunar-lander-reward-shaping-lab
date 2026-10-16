@@ -191,6 +191,26 @@ mode differs from the baseline only in the reward signal.
     landing policy already does). 29 tests pass.
   - **Runs NOT started:** awaiting go-ahead for the time_penalty campaign
     (3 seeds × ~23 min, run as background processes, ~25 min wall).
+  - **BLOCKED (2026-10-16, ~18:55 local): Smart App Control flipped from
+    evaluation to enforcement mid-session.** Windows Code Integrity now
+    blocks `torch_python.dll` (unsigned) sandbox-wide:
+    `OSError: [WinError 4551] An Application Control policy has blocked this
+    file` on *any* `import torch`/`stable_baselines3`, in the foreground and
+    in spawned processes. Evidence: CodeIntegrity/Operational event IDs
+    3033/3077 ("did not meet the Enterprise signing level requirements",
+    Policy ID {0283ac0f-fff1-49ae-ada1-8a933130cad6}) plus 3118 ("Smart App
+    Control Block"); `Get-AuthenticodeSignature` → NotSigned. numpy/gymnasium
+    still import and the pure-wrapper tests pass (7/7, no torch needed), so
+    only torch-backed work is affected. This happened *after* all Phase 1
+    training and *after* today's smoke runs — torch loaded fine earlier
+    (SAC evaluation mode allows unsigned files; enforcement blocks them —
+    a one-way, machine-level change). Verified: retries fail identically,
+    network is up (rules out a reputation-lookup outage), so this is a hard
+    blocker on this machine, not a transient. All P2-2 tooling above stays
+    committed and ready; the training/eval/compare steps need the policy
+    lifted (SAC off in Windows Security — note Microsoft marks that
+    permanent for this install — or an org WDAC exemption) or a move to a
+    machine without enforcement.
 - [ ] **P2-3 — Honest evaluation.** `evaluate.py --mode` (100 deterministic
   episodes/seed on the original reward, wrapper never used for evaluation);
   `aggregate.py` groups by mode; new `scripts/compare.py` writes
