@@ -1,12 +1,15 @@
 # Lunar Lander Reward Shaping Lab
 
 A reinforcement-learning portfolio project that trains a PPO agent on
-Gymnasium's `LunarLander-v3` and analyses its behaviour. **Phase 1** (this
-codebase) sets up the environment, trains a solid baseline with the built-in
-reward using tuned hyperparameters from the RL Baselines3 Zoo, and builds
-evaluation, plotting and video tooling on top of the *original, unmodified*
-environment reward. Phase 2 will add custom reward shaping variants and
-compare them against this baseline.
+Gymnasium's `LunarLander-v3` and analyses its behaviour. **Phase 1** sets up
+the environment, trains a solid baseline with the built-in reward using
+tuned hyperparameters from the RL Baselines3 Zoo, and builds evaluation,
+plotting and video tooling on top of the *original, unmodified* environment
+reward. **Phase 2** adds three custom reward-shaping variants — a per-frame
+time penalty, a deliberately exploitable hover bonus, and a potential-based
+"unfarmable" shaping — and compares all of them against the baseline on the
+original reward. Full Phase 2 write-up:
+[`reports/results.md`](reports/results.md).
 
 ## The environment
 
@@ -41,6 +44,37 @@ engine fires and -0.3 per frame the main engine fires (fuel cost). A safe
 landing ends the episode with **+100**; a crash (hull contact) or coming to
 rest off the pad ends it with **-100**. Episodes truncate after 1000 steps.
 The task is considered **solved at 200+ points**.
+
+## What is reward shaping? (for beginners)
+
+The reward is the score the learning algorithm is trying to maximise.
+**Reward shaping** means tweaking that score during *training* to steer the
+agent toward behaviour you want — "add 1 point for every second you stay
+upright" — while keeping *evaluation* on the real, unmodified score, so you
+can measure whether the steering actually helped.
+
+Shaping is famously double-edged:
+
+- **Helpful shaping** nudges the agent past slow early exploration: a small
+  per-frame cost for dawdling turned a dithering lander into a decisive
+  one (see `time_penalty` below: the best mode in the project).
+- **Reward hacking** is what happens when the shaping is easier to exploit
+  than the task itself — the agent maximises *your score* without ever
+  solving *your problem*. This lab reproduces it on purpose: the
+  `hover_bonus` variant pays +1 per frame for being upright and slow
+  *anywhere above the pad*, up to +1000 for hovering in place for a whole
+  episode, versus +100 for actually landing. The trained agents do the
+  economical thing: they hover until the clock runs out (85% of evaluation
+  episodes time out, mean original-reward score −4.4). Goodhart's law —
+  "when a measure becomes a target, it ceases to be a good measure" — in a
+  100-line wrapper.
+
+The class of shaping that theory says is safe is *potential-based*
+(`gamma·Φ(s') − Φ(s)`), whose terms **telescope**: hovering in a good state
+earns almost nothing, only *improving* pays, so it cannot be farmed. The
+project's `potential_shaped` variant implements exactly that and stays
+neutral on the true task. All four modes are trained with identical
+hyperparameters and graded on the original reward.
 
 ## Installation (Windows, CPU only)
 
@@ -103,6 +137,32 @@ python scripts/record_video.py --seeds 0 1 2
 python -m pytest tests/ -q
 ```
 
+### Phase 2: reward-shaped variants (per-mode configs under `configs/`)
+
+```powershell
+# Train a shaped campaign (3 seeds; per-mode configs pin the reward params)
+python -u scripts/train.py --config configs/ppo_time_penalty.yaml --seed 0
+python -u scripts/train.py --config configs/ppo_hover_bonus.yaml --seed 1
+python -u scripts/train.py --config configs/ppo_potential_shaped.yaml --seed 2
+#    --mode <mode> selects the same reward through the CLI (defaults from
+#    src/reward_wrappers.py); run dirs become results/runs/<mode>/seed_{S}/
+
+# Evaluate a mode (100 deterministic episodes per seed, original reward)
+python scripts/evaluate.py --mode time_penalty --episodes 100
+
+# Hover-farming diagnostics (timeouts, hover-state %, hover run lengths)
+python scripts/inspect_hover.py --episodes 20 `
+  --model results/runs/hover_bonus/seed_0/models/ppo_lander_seed0.zip
+
+# Cross-mode comparison: table, paired bootstrap CIs, plots
+python scripts/aggregate.py
+python scripts/compare.py
+
+# Videos for a mode + hover-vs-potential side-by-side clip
+python scripts/record_video.py --mode hover_bonus --seeds 0 1 2
+python scripts/side_by_side.py --seed 0
+```
+
 Everything is config-driven from `configs/ppo_baseline.yaml` (RL Baselines3
 Zoo recipe for LunarLander-v3: `n_envs: 16, n_steps: 1024, batch_size: 64,
 gae_lambda: 0.98, gamma: 0.999, n_epochs: 4, ent_coef: 0.01`).
@@ -146,6 +206,31 @@ Every number above is read from JSON/NPZ artifacts under `results/`
 produced by real runs (`results/runs/seed_*/summary.json`,
 `results/evaluations/*.json`) — nothing is hand-written or estimated.
 
+**Phase 2 — reward shaping comparison** (identical recipe, original reward,
+300 paired episodes per mode; from `results/evaluations/comparison.md` and
+`paired_differences.md`, 95% bootstrap CIs):
+
+| mode | mean across seeds | landed | timeout | mean len | fuel | paired diff vs baseline |
+|---|---|---|---|---|---|---|
+| baseline | +254.6 ± 3.5 | 99% | 1% | 366 | 53.7 | — |
+| time_penalty | **+262.4 ± 0.9** | 100% | 0% | 310 | 46.7 | **+7.8 [+6.1, +9.6]** |
+| hover_bonus | **−4.4 ± 51.9** | 15% | **85%** | 985 | 179.3 | **−259.0 [−267.2, −250.7]** |
+| potential_shaped | +256.3 ± 16.4 | 97% | 3% | 332 | 44.9 | +1.8 [−2.1, +5.3] (noise) |
+
+The deliberately exploitable hover bonus **reward-hacked**: agents park
+upright and slow above the pad and stay there — 95–96% of frames in the
+hover state, hover *runs* of 684–799 consecutive frames — until the
+1000-step truncation (85% of episodes; 99% on seed 1), burning 3.3× the
+baseline's fuel. The time penalty produced the *best and most decisive*
+landings (100% landed, zero timeouts, lowest fuel). The potential-based
+form, which telescopes and cannot be farmed, stayed neutral. Videos:
+`videos/<mode>_seed{0,1,2}.mp4` and
+`videos/side_by_side_hover_bonus_vs_potential_shaped_seed0.mp4`; full
+write-up with failure notes and reproduction commands in
+[`reports/results.md`](reports/results.md). Caveat: 3 seeds per mode — the
+paired differences are solid *for these 300 shared initial states* and thin
+as claims about the recipes in general.
+
 ## Notes for this machine (CPU-only laptops)
 
 - `torch.set_num_threads(1)` is essential: the default 12-thread intra-op
@@ -160,15 +245,21 @@ produced by real runs (`results/runs/seed_*/summary.json`,
 ## Project layout
 
 ```
-configs/     # YAML configs (ppo_baseline.yaml: Zoo-tuned PPO recipe)
+configs/     # YAML configs: ppo_baseline.yaml + per-mode ppo_<mode>.yaml
+src/         # reward_wrappers.py (time_penalty / hover_bonus / potential)
 scripts/     # entry points: random_agent, timing_check, train, evaluate,
-             # aggregate, plot_curves, record_video
-tests/       # pytest suite (helpers + episode/episode-JSON round trip)
+             # inspect_hover, aggregate, compare, plot_curves,
+             # record_video, side_by_side
+tests/       # pytest suite (51 tests: wrappers, helpers, episode/JSON
+             # round trips, reward-mode resolution)
+docs/        # resume_bullets.md (job-search material)
+reports/     # results.md (Phase 2 write-up)
 results/
-  runs/seed_*/        # models/, eval/, best/, monitor/, summary.json
-  evaluations/        # per-seed episode JSONs + summary.{json,md}
-  figures/            # learning_curves.png
-  timing/             # throughput benchmark CSVs
-  tb/                 # TensorBoard event files
+  runs/seed_*/          # baseline: models/, eval/, best/, monitor/, summary.json
+  runs/<mode>/seed_*/   # shaped campaigns (same layout per seed)
+  evaluations/          # per-seed episode JSONs, summary, comparison, plots
+  figures/              # learning_curves.png
+  timing/               # throughput benchmark CSVs
+  tb/                   # TensorBoard event files
 videos/     # recorded episode clips (random agent + trained agents)
 ```

@@ -316,13 +316,16 @@ mode differs from the baseline only in the reward signal.
   `side_by_side_hover_bonus_vs_potential_shaped_seed0.mp4` (1200x400,
   hover left / potential right, 18 s). Videos stay gitignored as
   regenerable artifacts.
-- [ ] **P2-5 — Write-up.** `reports/results.md` (comparison table, plots,
-  factual per-mode sections, failures and surprises), README update with a
-  beginner-level explanation of reward shaping / reward hacking and
-  reproduction commands, `docs/resume_bullets.md` (2 resume bullets + 1
-  LinkedIn post draft, verified numbers only, unconfirmed claims flagged),
-  and a "What I learned" section with prompts for the human to answer
-  (not answered by the agent).
+- [x] **P2-5 — Write-up.** `reports/results.md` (method, headline table,
+  factual per-mode sections, paired bootstrap CIs, five documented failures
+  and surprises, a "What I learned" section of five prompts for the human
+  deliberately left unanswered by the agent, reproduction commands), README
+  update (Phase 2 status in the intro, a beginner-level "What is reward
+  shaping?" section with the Goodhart framing, Phase 2 usage commands, the
+  four-mode results table, updated project layout), and
+  `docs/resume_bullets.md` (2 resume bullets + 1 LinkedIn post draft, all
+  numbers artifact-backed, with an explicit "Claims status" list separating
+  verified from unconfirmed claims).
 - [ ] **P2-6 — Verify & report.** Full `pytest` run; honest completion
   report: which tests passed, which runs finished/failed, how many
   hover-bonus attempts were needed, whether reward hacking actually
