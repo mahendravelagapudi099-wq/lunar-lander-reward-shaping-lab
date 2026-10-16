@@ -307,11 +307,11 @@ PyTorch 2.14.1 CPU · pandas · matplotlib · imageio · pytest.
 
 ## Author
 
-<!-- TODO: fill in name and links before publishing -->
+<!-- TODO: fill in your name before publishing -->
 **[Your name]** — final-year data science student.
 
-- LinkedIn: [TODO](TODO)
-- GitHub: [TODO](TODO)
+- LinkedIn: [velagapudi-mahendra](https://in.linkedin.com/in/velagapudi-mahendra-543481353)
+- GitHub: [mahendravelagapudi099-wq](https://github.com/mahendravelagapudi099-wq)
 
 The full technical write-up, including documented failures and open
 questions, is in [`reports/results.md`](reports/results.md).
